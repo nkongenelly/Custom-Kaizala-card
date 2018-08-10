@@ -656,12 +656,34 @@
             nextButton.value = (_currentPage == TOTAL_PAGE ? _strings["strSendResponseLabel"] : "");
             var nextButtonIsDisabled = false;
             if (_currentPage == 1) {
-                //Ensure mandatory fields are filled in
+                let questions = _form["questions"];
+                let totalQuestions = questions.length;
+                var count = 0;
+                
+                for(var x = 0; x < totalQuestions; x++){
+                    let fieldDescription = questions[x];
+                    let fieldId = fieldDescription["id"];
+                    let fieldTitle = fieldDescription["title"];
+                    let fieldType = fieldDescription["type"];
+                    let fieldInputType = "";
+                    let compressedTitle = fieldTitle.replace(/\s+/g, '');
+                    
+                    if((fieldTitle != "Name") && (fieldTitle != "Phone") && (fieldTitle != "Location") && (fieldTitle != "Response Time"))
+                    {
+                        let formValue;
+                        if(fieldType == 0){
+                            formValue = selectedOptions[compressedTitle];
+                        }
 
-                // if (_bouquetNumberQuestion == "" || _bouquetPacksQuestion == "") {
-                //     nextButtonIsDisabled = true;
-                // }
-
+                        else{
+                            formValue = document.getElementById(compressedTitle).value;
+                        }
+                        
+                        if((formValue == "") || (formValue == null)){
+                            nextButtonIsDisabled = true;
+                        }
+                    }
+                }
             } else if (_currentPage == 2) {
                 if (_isLocationRefreshing) {
                     nextButtonIsDisabled = true;
