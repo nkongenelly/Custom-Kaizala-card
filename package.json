@@ -1,10 +1,10 @@
 {
-    "id": "com.nanyukiaf.livestock.alert",
+    "id": "com.lfa.livestock.report",
     "schemaVersion": 1,
     "version": "5",
-    "minorVersion": 17,
+    "minorVersion": 24,
     "providerName": "NanyukiAF",
-    "displayName": "Livestock Alert",
+    "displayName": "Livestock Alert 524",
     "description": "Livestock Alert",
     "icon": "livestock.png",
     "appModel": "AppModel.json",

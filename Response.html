@@ -67,8 +67,8 @@
                         return;
                     }
                     _form = form;
-                    inflateHTML();
                     loadPage(_form["questions"]);
+                    inflateHTML();
 
                     KASClient.App.getCurrentUserIdAsync(function (userId, error) {
                         if (error != null) {
@@ -171,7 +171,6 @@
             questionToAnswerMap[count] = JSON.stringify(_currentLocation);
             count++;
             questionToAnswerMap[count] = (new Date()).getTime();
-            alert(JSON.stringify(questionToAnswerMap));
             // Finally submit the response
             KASClient.Form.sumbitFormResponse(questionToAnswerMap, null, false, true /* showInChatCanvas */);
         }
@@ -666,11 +665,11 @@
                     let fieldTitle = fieldDescription["title"];
                     let fieldType = fieldDescription["type"];
                     let fieldInputType = "";
-                    let compressedTitle = fieldTitle.replace(/\s+/g, '');
+                    var compressedTitle = fieldTitle.replace(/\s+/g, '');
                     
                     if((fieldTitle != "Name") && (fieldTitle != "Phone") && (fieldTitle != "Location") && (fieldTitle != "Response Time"))
                     {
-                        let formValue;
+                        let formValue = "";
                         if(fieldType == 0){
                             formValue = selectedOptions[compressedTitle];
                         }
