@@ -67,7 +67,6 @@
                         return;
                     }
                     _form = form;
-                    alert(JSON.stringify(_form["questions"]));
                     loadPage(_form["questions"]);
                     inflateHTML();
 
@@ -256,9 +255,10 @@
                 let fieldId = fieldDescription["id"];
                 let fieldTitle = fieldDescription["title"];
                 let fieldType = fieldDescription["type"];
+                let optional = fieldDescription["isResponseOptional"];
                 let fieldInputType = "";
                 let compressedTitle = fieldTitle.replace(/\s+/g, '');
-
+                
                 switch(fieldType){
                     case 0:
                         fieldInputType = "select";
