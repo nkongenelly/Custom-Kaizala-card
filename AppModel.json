@@ -12,7 +12,7 @@
         },
         {
             "title": "Livestock Location",
-            "type": "Number"
+            "type": "Numeric"
         },
         {
             "title": "Livestock Date",
