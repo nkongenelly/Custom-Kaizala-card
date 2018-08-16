@@ -67,6 +67,7 @@
                         return;
                     }
                     _form = form;
+                    alert(JSON.stringify(_form["questions"]));
                     loadPage(_form["questions"]);
                     inflateHTML();
 
@@ -232,6 +233,24 @@
             var pageOneDiv = document.getElementById("page1");
             KASClient.UI.clearElement(pageOneDiv);
             
+            /*******************************
+            KEY
+            ********************************
+
+            SingleSelect = 0,
+            MultiSelect = 1,
+            Text = 2,
+            Numeric = 3,
+            Location = 4,
+            DateTime = 5,
+            Image = 6,
+            SingleSelectExternal = 7,
+            AttachmentList = 8,
+            PhoneNumber = 9,
+            DateOnly = 10
+
+            ********************************/
+
             for(var x = 0; x < totalQuestions; x++){
                 let fieldDescription = questions[x];
                 let fieldId = fieldDescription["id"];

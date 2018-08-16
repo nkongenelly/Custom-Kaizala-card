@@ -8,15 +8,18 @@
     "questions": [
         {
             "title": "Livestock Number",
-            "type": "Text"
+            "type": "Text",
+            "isOptional": true
         },
         {
             "title": "Livestock Location",
-            "type": "Numeric"
+            "type": "Numeric",
+            "isOptional": true
         },
         {
             "title": "Livestock Date",
-            "type": "DateTime"
+            "type": "DateTime",
+            "isOptional": true
         },
         {
             "title": "Measures Taken",

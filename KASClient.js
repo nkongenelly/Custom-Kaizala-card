@@ -8,6 +8,86 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+!function (r, t) { "function" == typeof define && define.amd ? define(t) : "object" == typeof exports ? module.exports = t() : r.jsonLogic = t(); }(this, function () {
+    "use strict";
+    Array.isArray || (Array.isArray = function (r) { return "[object Array]" === Object.prototype.toString.call(r); });
+    var r = {}, t = { "==": function (r, t) { return r == t; }, "===": function (r, t) { return r === t; }, "!=": function (r, t) { return r != t; }, "!==": function (r, t) { return r !== t; }, ">": function (r, t) { return r > t; }, ">=": function (r, t) { return r >= t; }, "<": function (r, t, n) { return void 0 === n ? r < t : r < t && t < n; }, "<=": function (r, t, n) { return void 0 === n ? r <= t : r <= t && t <= n; }, "!!": function (t) { return r.truthy(t); }, "!": function (t) { return !r.truthy(t); }, "%": function (r, t) { return r % t; }, log: function (r) { return console.log(r), r; }, in: function (r, t) { return void 0 !== t.indexOf && -1 !== t.indexOf(r); }, cat: function () { return Array.prototype.join.call(arguments, ""); }, substr: function (r, t, n) { if (n < 0) {
+            var e = String(r).substr(t);
+            return e.substr(0, e.length + n);
+        } return String(r).substr(t, n); }, "+": function () { return Array.prototype.reduce.call(arguments, function (r, t) { return parseFloat(r, 10) + parseFloat(t, 10); }, 0); }, "*": function () { return Array.prototype.reduce.call(arguments, function (r, t) { return parseFloat(r, 10) * parseFloat(t, 10); }); }, "-": function (r, t) { return void 0 === t ? -r : r - t; }, "/": function (r, t) { return r / t; }, min: function () { return Math.min.apply(this, arguments); }, max: function () { return Math.max.apply(this, arguments); }, merge: function () { return Array.prototype.reduce.call(arguments, function (r, t) { return r.concat(t); }, []); }, var: function (r, t) { var n = void 0 === t ? null : t, e = this; if (void 0 === r || "" === r || null === r)
+            return e; for (var i = String(r).split("."), u = 0; u < i.length; u++) {
+            if (null === e)
+                return n;
+            if (void 0 === (e = e[i[u]]))
+                return n;
+        } return e; }, missing: function () { for (var t = [], n = Array.isArray(arguments[0]) ? arguments[0] : arguments, e = 0; e < n.length; e++) {
+            var i = n[e], u = r.apply({ var: i }, this);
+            null !== u && "" !== u || t.push(i);
+        } return t; }, missing_some: function (t, n) { var e = r.apply({ missing: n }, this); return n.length - e.length >= t ? [] : e; }, method: function (r, t, n) { return r[t].apply(r, n); } };
+    return r.is_logic = function (r) { return "object" == typeof r && null !== r && !Array.isArray(r) && 1 === Object.keys(r).length; }, r.truthy = function (r) { return (!Array.isArray(r) || 0 !== r.length) && !!r; }, r.get_operator = function (r) { return Object.keys(r)[0]; }, r.get_values = function (t) { return t[r.get_operator(t)]; }, r.apply = function (n, e) { if (Array.isArray(n))
+        return n.map(function (t) { return r.apply(t, e); }); if (!r.is_logic(n))
+        return n; e = e || {}; var i, u, o, a, f, l = r.get_operator(n), p = n[l]; if (Array.isArray(p) || (p = [p]), "if" === l || "?:" == l) {
+        for (i = 0; i < p.length - 1; i += 2)
+            if (r.truthy(r.apply(p[i], e)))
+                return r.apply(p[i + 1], e);
+        return p.length === i + 1 ? r.apply(p[i], e) : null;
+    } if ("and" === l) {
+        for (i = 0; i < p.length; i += 1)
+            if (u = r.apply(p[i], e), !r.truthy(u))
+                return u;
+        return u;
+    } if ("or" === l) {
+        for (i = 0; i < p.length; i += 1)
+            if (u = r.apply(p[i], e), r.truthy(u))
+                return u;
+        return u;
+    } if ("filter" === l)
+        return a = r.apply(p[0], e), o = p[1], Array.isArray(a) ? a.filter(function (t) { return r.truthy(r.apply(o, t)); }) : []; if ("map" === l)
+        return a = r.apply(p[0], e), o = p[1], Array.isArray(a) ? a.map(function (t) { return r.apply(o, t); }) : []; if ("reduce" === l)
+        return a = r.apply(p[0], e), o = p[1], f = void 0 !== p[2] ? p[2] : null, Array.isArray(a) ? a.reduce(function (t, n) { return r.apply(o, { current: n, accumulator: t }); }, f) : f; if ("all" === l) {
+        if (a = r.apply(p[0], e), o = p[1], !a.length)
+            return !1;
+        for (i = 0; i < a.length; i += 1)
+            if (!r.truthy(r.apply(o, a[i])))
+                return !1;
+        return !0;
+    } if ("none" === l)
+        return 0 === r.apply({ filter: p }, e).length; if ("some" === l)
+        return r.apply({ filter: p }, e).length > 0; if (p = p.map(function (t) { return r.apply(t, e); }), "function" == typeof t[l])
+        return t[l].apply(e, p); if (l.indexOf(".") > 0) {
+        var c = String(l).split("."), y = t;
+        for (i = 0; i < c.length; i++)
+            if (void 0 === (y = y[c[i]]))
+                throw new Error("Unrecognized operation " + l + " (failed at " + c.slice(0, i + 1).join(".") + ")");
+        return y.apply(e, p);
+    } throw new Error("Unrecognized operation " + l); }, r.uses_data = function (t) { var n = []; if (r.is_logic(t)) {
+        var e = r.get_operator(t), i = t[e];
+        Array.isArray(i) || (i = [i]), "var" === e ? n.push(i[0]) : i.map(function (t) { n.push.apply(n, r.uses_data(t)); });
+    } return function (r) { for (var t = [], n = 0, e = r.length; n < e; n++)
+        -1 === t.indexOf(r[n]) && t.push(r[n]); return t; }(n); }, r.add_operation = function (r, n) { t[r] = n; }, r.rm_operation = function (r) { delete t[r]; }, r.rule_like = function (t, n) { if (n === t)
+        return !0; if ("@" === n)
+        return !0; if ("number" === n)
+        return "number" == typeof t; if ("string" === n)
+        return "string" == typeof t; if ("array" === n)
+        return Array.isArray(t) && !r.is_logic(t); if (r.is_logic(n)) {
+        if (r.is_logic(t)) {
+            var e = r.get_operator(n), i = r.get_operator(t);
+            if ("@" === e || e === i)
+                return r.rule_like(r.get_values(t, !1), r.get_values(n, !1));
+        }
+        return !1;
+    } if (Array.isArray(n)) {
+        if (Array.isArray(t)) {
+            if (n.length !== t.length)
+                return !1;
+            for (var u = 0; u < n.length; u += 1)
+                if (!r.rule_like(t[u], n[u]))
+                    return !1;
+            return !0;
+        }
+        return !1;
+    } return !1; }, r;
+});
 var KASClient;
 (function (KASClient) {
     var App;
@@ -75,6 +155,26 @@ var KASClient;
             });
         }
         App.getIntegerationServiceTokenAsync = getIntegerationServiceTokenAsync;
+        /**
+        * Sets a key-value pair in secured app storage, should be used to store sensitive data like tokens
+        * @param {string} key got from integeration service
+        * @param {string} value got from integeration service
+        */
+        function setSecuredData(key, value) {
+            KASClient.setSecuredValue(key, value);
+        }
+        App.setSecuredData = setSecuredData;
+        /**
+        * Gets the data stored against a key from the secured app storage
+        * @param {string} key key for the data
+        * @param {Callback} callback with below parameters:
+        * * * * @param {string} value got from secured storage against the key
+        * * * * @param {string} error message in case of error, null otherwise
+        */
+        function getSecuredData(key, callback) {
+            KASClient.getSecuredValue(key, callback);
+        }
+        App.getSecuredData = getSecuredData;
         /**
         * Gets deviceId
         * @param {Callback} callback with below parameters:
@@ -543,6 +643,16 @@ var KASClient;
         }
         App.recordEvent = recordEvent;
         /**
+        * Recording event for independent telemetry
+        * @param {string} eventName string
+        * @param {string} props JSON
+        */
+        function recordTelemetryEvent(eventName, props) {
+            if (props === void 0) { props = JSON.parse("{}"); }
+            KASClient.recordEventNative(eventName, "INDEPENDENT", props);
+        }
+        App.recordTelemetryEvent = recordTelemetryEvent;
+        /**
         * Checks if the current user an O365 subscriber
         * @param {Callback} callback with below parameters:
         * * * * @param {boolean} subscribed true if subscribed, false otherwise
@@ -583,16 +693,16 @@ var KASClient;
         * Registers a callback to be executed on hardware back button press (for Android)
         * @param {Callback} callback to be executed
         */
-        var hardwareBackPressCallback = null;
+        App.hardwareBackPressCallback = null;
         function registerHardwareBackPressCallback(callback) {
             if (callback === void 0) { callback = null; }
-            hardwareBackPressCallback = callback;
+            App.hardwareBackPressCallback = callback;
         }
         App.registerHardwareBackPressCallback = registerHardwareBackPressCallback;
         // Will be called from Android Activity's onBackPressed()
         function OnHardwareBackPress() {
-            if (hardwareBackPressCallback) {
-                hardwareBackPressCallback();
+            if (App.hardwareBackPressCallback) {
+                App.hardwareBackPressCallback();
             }
         }
         App.OnHardwareBackPress = OnHardwareBackPress;
@@ -682,11 +792,104 @@ var KASClient;
             return currentLocale;
         }
         App.getCurrentLocale = getCurrentLocale;
+        /**
+          * If authentication type is allowed, this API performs the authentication and returns success/false status
+          * else it returns an error string with reason why authentication is not possible.
+          * @param {KASAuthenticationType} authenticationType type of authentication.
+          * @param {Callback} callback with below parameters:
+          * * * * @param {boolean} isSuccessful true if the form is not yet expired
+          * * * * @param {string} reasonCode reason code in case of error, null otherwise
+          */
+        function performAuthenticationAsync(authenticationType, callback) {
+            if (authenticationType === void 0) { authenticationType = KASClient.KASAuthenticationType.None; }
+            KASClient.performAuthentication(authenticationType, function (isActive, reasonCode) {
+                if (callback) {
+                    callback(isActive, reasonCode);
+                }
+            });
+        }
+        App.performAuthenticationAsync = performAuthenticationAsync;
+        /**
+        * Checks if authentication of type is possible or not.
+        * @param {KASAuthenticationType} authenticationType type of authentication.
+        * @param {Callback} callback with below parameters:
+        * * * * @param {boolean} isSuccessful true if finger printing is possible
+        * * * * @param {string} reasonCode reason code why finger print is not possible
+        */
+        function isAuthenticationTyepSupportedAsync(authenticationType, callback) {
+            if (authenticationType === void 0) { authenticationType = KASClient.KASAuthenticationType.None; }
+            KASClient.isAuthenticationTypeSupported(authenticationType, function (isSuccessful, reasonCode) {
+                if (callback) {
+                    callback(isSuccessful, reasonCode);
+                }
+            });
+        }
+        App.isAuthenticationTyepSupportedAsync = isAuthenticationTyepSupportedAsync;
+        /**
+        * Opens native voice to text conversion UI and returns the text for the voice input given by user.
+        * @param {Callback} callback with below parameters:
+        * * * * @param {boolean} text converted text for the voice input given by user
+        * * * * @param {string} error any error that happens in native during voice to speech conversion
+        */
+        function performSpeechToTextAsync(callback) {
+            KASClient.performSpeechToText(function (text, error) {
+                if (callback) {
+                    callback(text, error);
+                }
+            });
+        }
+        App.performSpeechToTextAsync = performSpeechToTextAsync;
+        /**
+        * Opens given http url in browser. For strings not starting with http, it is a no-op
+        * @param {string} httpUrlStr
+        */
+        function openLinkInBrowser(httpUrlStr) {
+            KASClient.openHttpLinkInBrowser(httpUrlStr);
+        }
+        App.openLinkInBrowser = openLinkInBrowser;
+        /**
+        * performs an http request and returns the response as specified below:
+        * @param {string} url base url to open
+        * @param {string} parametersJSON jsonstring containing parameters can be given as null.
+        *                                 If given as null a request to the url provided above will be made.
+        *                                 Parameters include request header,query parameters(default blank), request method(default GET)
+        *                                 and request body(The body to be posted if request method is POST. default blank.)
+        *                                 The keys for parameters are:
+        *                                 a.) "method" : request method. example: "POST". defaults to "GET".
+        *                                 b.) "requestBody": body of request in case of "POST". defaults to blank.
+        *                                 c.) "requestHeaders": headers to be sent with request. should be a json with
+        *                                                         key as request header and value as the desired value. defaults to blank.
+        *                                 d.) "queryParameters": query parameters. will be encoded in url. should be a json with
+        *                                                         key as parameter name and value as its value. defaults to blank.
+        *                                 e.) "requestResourcePath": will be appended to base url. default is blank.
+        * @param {Callback} callback callback with below parameters:
+        * * * * @param {string} response response body returned
+        *                                This could have two possible config:
+        *                               If request was a success it returns jsonstring with following keys:
+        *                                a.) "HttpResponseCode" : The response code of request.
+        *                               b.) "HttpResponseHeader": The response HTTP headers
+        *                               c.) "HttpResponseBody": The response body returned for request.
+        *                               If there was a Network error then it returns:
+        *                               a.) "HttpErrorCode": The error code
+        *                               b.) "HttpErrorMessage": The error message eg. Malformed URL, Cannot connect to host etc.
+        * * * * @param {string} error error if any : This includes the standard error code defined in KASClient documentation.
+        */
+        function performHTTPRequest(url, parametersJSON, callback) {
+            if (parametersJSON == null || parametersJSON == undefined) {
+                parametersJSON = "";
+            }
+            KASClient.performHTTPRequestNative(url, parametersJSON, function (response, error) {
+                if (callback) {
+                    callback(response, error);
+                }
+            });
+        }
+        App.performHTTPRequest = performHTTPRequest;
     })(App = KASClient.App || (KASClient.App = {}));
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
-    var Constants = (function () {
+    var Constants = /** @class */ (function () {
         function Constants() {
         }
         ////////////// Telemetry event names ////////////////////////
@@ -720,13 +923,6 @@ var KASClient;
 (function (KASClient) {
     var Form;
     (function (Form) {
-        //////////////////////////////
-        /////// Chat card APIs ///////
-        //////////////////////////////
-        function sendChatCardTemplate(template) {
-            KASClient.sendCardTemplate(template.toJSON());
-        }
-        Form.sendChatCardTemplate = sendChatCardTemplate;
         //////////////////////////////////
         /////// Creation flow APIs ///////
         //////////////////////////////////
@@ -768,6 +964,37 @@ var KASClient;
             KASClient.createRequest(form.toJSON(), null, shouldInflate);
         }
         Form.submitFormRequest = submitFormRequest;
+        /**
+      * Submits the newly created form as a request. This results a new conversation card
+      * @param {KASForm} form
+      */
+        function submitFormRequestV2(form, shouldDismiss, shouldSendToSubscribers) {
+            if (shouldDismiss === void 0) { shouldDismiss = false; }
+            if (shouldSendToSubscribers === void 0) { shouldSendToSubscribers = true; }
+            //////////// MOCK ////////////
+            if (KASClient.shouldMockData()) {
+                alert("SubmitFormRequest");
+                return;
+            }
+            //////////// ACTUAL ////////////
+            KASClient.createRequestV2(form.toJSON(), shouldDismiss, shouldSendToSubscribers);
+        }
+        Form.submitFormRequestV2 = submitFormRequestV2;
+        /**
+        * Submits the newly created form as a request with responses
+        * @param {KASForm} form
+        */
+        function submitFormRequestWithResponses(form, responses, shouldDismiss, isResponseAnonymous, shouldSendToSubscribers) {
+            if (shouldSendToSubscribers === void 0) { shouldSendToSubscribers = true; }
+            //////////// MOCK ////////////
+            if (KASClient.shouldMockData()) {
+                alert("submitFormRequestWithResponses");
+                return;
+            }
+            //////////// ACTUAL ////////////
+            KASClient.createRequestWithResponses(form.toJSON(), responses, shouldDismiss, isResponseAnonymous, shouldSendToSubscribers);
+        }
+        Form.submitFormRequestWithResponses = submitFormRequestWithResponses;
         /**
         * Submits the newly created form as a request. This results a new conversation card
         * @param {KASForm} form
@@ -892,6 +1119,27 @@ var KASClient;
         }
         Form.getMyFormResponsesAsync = getMyFormResponsesAsync;
         /**
+        * Gets all the responses of the current user against the form
+        * @param {Callback} callback with below parameters:
+        * * * * @param {KASFormResponse[]} responses can be null in case of error
+        * * * * @param {string} error message in case of error, null otherwise
+        */
+        function getBatchResponsesAsync(offset, batchSize, callback) {
+            if (offset === void 0) { offset = 0; }
+            if (batchSize === void 0) { batchSize = 100; }
+            //////////// ACTUAL ////////////
+            KASClient.getBatchResponsesJson(offset, batchSize, function (responsesJson, error) {
+                var responses = [];
+                for (var i in responsesJson) {
+                    responses.push(KASClient.KASFormResponse.fromJSON(responsesJson[i]));
+                }
+                if (callback) {
+                    callback(responses, error);
+                }
+            });
+        }
+        Form.getBatchResponsesAsync = getBatchResponsesAsync;
+        /**
         * Submits a new response against the form associated with the conversation card
         * This will dismiss the current screen
         * @param {JSON} questionToAnswerMap question id to answer mapping
@@ -923,6 +1171,23 @@ var KASClient;
             KASClient.sendResponse(questionToAnswerMap, responseId, isEdit, showInChatCanvas, isAnonymous, false);
         }
         Form.sumbitFormResponseWithoutDismiss = sumbitFormResponseWithoutDismiss;
+        /**
+        * Submits a new response against the form associated with the conversation card
+        * This won't dismiss the current screen
+        * @param {KASFormBatchResponseUnit[]} responses question id to answer mapping
+        * @param {boolean} showInChatCanvas denotes if a separate chat card needs to be created for this response or not
+        * @param {boolean} isAnonymous denotes if the response should be registered as anonymous or not
+        * @param {boolean} shouldDismis denotes the current screen will dismiss or not
+        */
+        function sumbitBatchFormResponse(responses, showInChatCanvas, isAnonymous, shouldDismiss) {
+            if (shouldDismiss === void 0) { shouldDismiss = true; }
+            var responsesJson = [];
+            for (var i = 0; i < responses.length; i++) {
+                responsesJson.push(responses[i].toJSON());
+            }
+            KASClient.sendBatchResponse(responsesJson, showInChatCanvas, isAnonymous, shouldDismiss);
+        }
+        Form.sumbitBatchFormResponse = sumbitBatchFormResponse;
         /////////////////////////////////
         /////// Summary flow APIs ///////
         /////////////////////////////////
@@ -939,6 +1204,19 @@ var KASClient;
             });
         }
         Form.shouldSeeFormSummaryAsync = shouldSeeFormSummaryAsync;
+        /**
+        * Gets form permissions
+        * @param {Callback} callback with below parameters:
+        * * * * @param {KASFormUserCapabilities} permissions
+        */
+        function getFormUserCapabilitiesAsync(callback) {
+            KASClient.getFormUserCapabilities(function (formJson, error) {
+                if (callback) {
+                    callback(KASClient.KASFormUserCapabilities.fromJSON(formJson), error);
+                }
+            });
+        }
+        Form.getFormUserCapabilitiesAsync = getFormUserCapabilitiesAsync;
         /**
         * Gets whether the current user is subscriber or not
         * @param {Callback} callback with below parameters:
@@ -1371,6 +1649,7 @@ var KASClient;
         Form.updatePackageCustomPropertiesAsync = updatePackageCustomPropertiesAsync;
     })(Form = KASClient.Form || (KASClient.Form = {}));
 })(KASClient || (KASClient = {}));
+var iOSFontSizeScaleMultiplier = 1.0;
 var KASClient;
 (function (KASClient) {
     var Internal;
@@ -1440,7 +1719,708 @@ var KASClient;
             }
         }
         Internal.setFontSizeMultiplier = setFontSizeMultiplier;
+        // for iframe cross origin communication, document.domain has to be set to same super domain
+        // this is used by webapp to render immersive views.
+        // reference -> https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy#Changing_origin
+        function setDocumentDomain() {
+            if (document.domain === 'cdn-alpha.kaiza.la'
+                || document.domain === 'cdn.kaiza.la'
+                || document.domain === 'webapp-alpha.kaiza.la'
+                || document.domain === 'webapp.kaiza.la'
+                || document.domain === 'webapp-local.kaiza.la') {
+                document.domain = 'kaiza.la';
+            }
+        }
+        Internal.setDocumentDomain = setDocumentDomain;
     })(Internal = KASClient.Internal || (KASClient.Internal = {}));
+})(KASClient || (KASClient = {}));
+var KASClient;
+(function (KASClient) {
+    var Assets = /** @class */ (function () {
+        function Assets() {
+        }
+        Assets.emptyState = "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NkEAAQQQQAABBBBInQAFaOosaQkBBBBAAAEEEEAgCQEK0CSQ2AQBBBBAAAEEEEAgdQIUoKmzpCUEEEAAAQQQQACBJAQoQJNAYhMEEEAAAQQQQACB1AlQgKbOkpYQQAABBBBAAAEEkhCgAE0CiU0QQAABBBBAAAEEUidAAZo6S1pCAAEEEEAAAQQQSEKAAjQJJDZBAAEEEEAAAQQQSJ0ABWjqLGkJAQQQQAABBBBAIAkBCtAkkNgEAQQQQAABBBBAIHUCFKCps6QlBBBAAAEEEEAAgSQEKECTQGITBBBAAAEEEEAAgdQJUICmzpKWEEAAAQQQQAABBJIQCCexDZsggAACCCCAAALBEgjJQonKRSlPqmbLN0yb+8fardm0QJS8EltWUp/yvnzcoPJx7ISOAAIIIIAAAggkL3DG73TyG6diS+dM+ePZd6SipaC1wSn4oI0o+SCAAAIIIIAAAh4XoAD1+AARHgIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAII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";
+        return Assets;
+    }());
+    KASClient.Assets = Assets;
+})(KASClient || (KASClient = {}));
+var KASClient;
+(function (KASClient) {
+    var KASFormEmptyModule = /** @class */ (function () {
+        function KASFormEmptyModule() {
+            this.icon = KASClient.Assets.emptyState;
+            this.title = null;
+            this.subtitle = null;
+            this.actionTitle = null;
+            this.action = null;
+            this.subActionTitle = null;
+            this.subAction = null;
+            this.view = null;
+        }
+        KASFormEmptyModule.prototype.getView = function () {
+            if (!this.view) {
+                var views = [];
+                if (this.icon) {
+                    views.push(this.getIconDiv());
+                    views.push(KASClient.getSpace("30pt"));
+                }
+                views.push(this.getTitleDiv());
+                views.push(this.getSubtitleDiv());
+                if (this.actionTitle) {
+                    views.push(KASClient.getSpace("50pt"));
+                    views.push(this.getActionDiv());
+                }
+                if (this.subActionTitle) {
+                    views.push(KASClient.getSpace("20pt"));
+                    views.push(this.getSubActionDiv());
+                }
+                this.view = KASClient.getVerticalDiv(views, this.getEmptyModuleAttributes());
+            }
+            return this.view;
+        };
+        KASFormEmptyModule.prototype.recreateView = function () {
+            this.view = null;
+            return this.getView();
+        };
+        KASFormEmptyModule.prototype.getIconDiv = function () {
+            if (this.icon) {
+                return KASClient.getBase64Image(this.icon, this.getIconAttributes());
+            }
+            return null;
+        };
+        KASFormEmptyModule.prototype.getTitleDiv = function () {
+            if (this.title) {
+                return KASClient.getLabel(this.title, this.getTitleAttributes());
+            }
+            return null;
+        };
+        KASFormEmptyModule.prototype.getSubtitleDiv = function () {
+            if (this.subtitle) {
+                return KASClient.getLabel(this.subtitle, this.getSubtitleAttributes());
+            }
+            return null;
+        };
+        KASFormEmptyModule.prototype.getActionDiv = function () {
+            if (this.actionTitle) {
+                var actionDiv = KASClient.getLabel(this.actionTitle, this.getActionAttributes());
+                KASClient.addClickEvent(actionDiv, this.action);
+                return actionDiv;
+            }
+            return null;
+        };
+        KASFormEmptyModule.prototype.getSubActionDiv = function () {
+            if (this.subActionTitle) {
+                var subActionDiv = KASClient.getLabel(this.subActionTitle, this.getSubtitleAttributes());
+                KASClient.addClickEvent(subActionDiv, this.subAction);
+                return subActionDiv;
+            }
+            return null;
+        };
+        KASFormEmptyModule.prototype.getEmptyModuleAttributes = function () {
+            var attributes = {};
+            attributes["display"] = "flex";
+            attributes["flex-direction"] = "column";
+            attributes["justify-content"] = "center";
+            attributes["align-items"] = "center";
+            attributes["padding"] = "70pt 0 0 0";
+            return attributes;
+        };
+        KASFormEmptyModule.prototype.getIconAttributes = function () {
+            var attributes = {};
+            attributes["width"] = "224pt";
+            attributes["height"] = "170pt";
+            return attributes;
+        };
+        KASFormEmptyModule.prototype.getTitleAttributes = function () {
+            var attributes = {};
+            attributes["text-align"] = "center";
+            attributes["font-size"] = KASClient.getScaledFontSize("14pt");
+            attributes["font-weight"] = SEMIBOLD_FONT_WEIGHT;
+            attributes["color"] = "#6f7e8f";
+            return attributes;
+        };
+        KASFormEmptyModule.prototype.getSubtitleAttributes = function () {
+            var attributes = {};
+            attributes["text-align"] = "center";
+            attributes["font-size"] = KASClient.getScaledFontSize("10pt");
+            attributes["font-weight"] = REGULAR_FONT_WEIGHT;
+            attributes["color"] = "#5c6a7c";
+            return attributes;
+        };
+        KASFormEmptyModule.prototype.getActionAttributes = function () {
+            var attributes = {};
+            attributes["text-align"] = "center";
+            attributes["font-size"] = KASClient.getScaledFontSize("14pt");
+            attributes["font-weight"] = SEMIBOLD_FONT_WEIGHT;
+            attributes["color"] = BLUE_COLOR;
+            return attributes;
+        };
+        return KASFormEmptyModule;
+    }());
+    KASClient.KASFormEmptyModule = KASFormEmptyModule;
+})(KASClient || (KASClient = {}));
+// Constants
+var NAVIGATION_BAR_HEIGHT_IOS = "44pt";
+var NAVIGATION_BAR_HEIGHT_ANDROID = "36pt";
+var BOTTOM_BAR_HEIGHT = "44pt";
+var MODULE_GAP = "4pt";
+var DEFAULT_SPACE_LENGTH = "10pt";
+var DEFAULT_IMAGE_DIMEN = "50pt";
+var BLUE_COLOR = "rgb(0, 111, 241)";
+var LIGHT_BLUE_COLOR = "rgb(0, 161, 255)";
+var RED_COLOR = "rgb(208, 2, 27)";
+var LIGHT_RED_COLOR = "rgb(222, 45, 79)";
+var LINE_SEPARATOR_ATTRIBUTE = "0.5pt solid #d4d8db";
+var PAGE_BG_COLOR = "#f1f2f4";
+var SHADOW_COLOR = "rgba(0, 0, 0, 0.1)";
+var CLEAR_COLOR = "rgba(0, 0, 0, 0)";
+var TEXT_PRIMARY_COLOR = "rgb(50, 72, 95)";
+var TEXT_SECONDARY_COLOR = "rgb(102, 119, 135)";
+var GREY_BACKGROUND_COLOR = "rgba(212, 216, 219, 0.4)";
+var REGULAR_FONT_WEIGHT = "normal";
+var MEDIUM_FONT_WEIGHT = "500";
+var SEMIBOLD_FONT_WEIGHT = "600";
+var KASClient;
+(function (KASClient) {
+    /////////////////////////////////////////////////
+    ////////////// INCOMPATIBLE SCREEN //////////////
+    /////////////////////////////////////////////////
+    function showIncompatibleScreen() {
+        // If progress bar is shown, hide it first
+        if (KASClient.Version.clientSupports(KASClient.Version.VERSION_1)) {
+            KASClient.App.hideProgressBar();
+        }
+        var incompatibleModule = new KASClient.KASFormEmptyModule();
+        incompatibleModule.title = KASClient.Internal.getKASClientString("KASFormErrorTitle");
+        incompatibleModule.subtitle = KASClient.Internal.getKASClientString("KASFormErrorSubTitle");
+        var dismissScreen = function () {
+            if (KASClient.Version.clientSupports(KASClient.Version.VERSION_1)) {
+                KASClient.App.dismissCurrentScreen();
+            }
+            else if (KASClient.getPlatform() == KASClient.Platform.iOS) {
+                // Submit a dummy response against a dummy id which will dismiss the screen
+                // without adding that response
+                KASClient.Form.sumbitFormResponse(JSON.parse("{}"), "DUMMY_ID", true, false, false);
+            }
+        };
+        if (KASClient.Version.clientSupports(KASClient.Version.VERSION_3)) {
+            incompatibleModule.actionTitle = KASClient.Internal.getKASClientString("KASFormErrorUpgradeAction");
+            incompatibleModule.action = function () {
+                KASClient.openStoreLink();
+            };
+            incompatibleModule.subActionTitle = KASClient.Internal.getKASClientString("KASFormErrorNotNowAction");
+            incompatibleModule.subAction = function () {
+                dismissScreen();
+            };
+        }
+        else {
+            incompatibleModule.actionTitle = KASClient.Internal.getKASClientString("KASFormErrorOkAction");
+            incompatibleModule.action = function () {
+                dismissScreen();
+            };
+        }
+        addCSS(document.body, { "background-color": "white" });
+        clearElement(document.body);
+        addElement(incompatibleModule.getView(), document.body);
+    }
+    KASClient.showIncompatibleScreen = showIncompatibleScreen;
+    /////////////////// General Module Utility ///////////////////
+    function getProfilePic(user, attributes) {
+        if (attributes === void 0) { attributes = null; }
+        var userProfilePicDiv = getLabel(user.pictureInitials, Object.assign(getDefaultProfilePicAttributes(user), attributes));
+        if (user.pictureUrl && user.pictureUrl != "") {
+            userProfilePicDiv = getCircularImage(user.pictureUrl, "30pt", attributes);
+        }
+        return userProfilePicDiv;
+    }
+    KASClient.getProfilePic = getProfilePic;
+    function getDefaultProfilePicAttributes(user) {
+        var attributes = {};
+        attributes["border-radius"] = "50%";
+        attributes["width"] = "30pt";
+        attributes["height"] = "30pt";
+        attributes["display"] = "flex";
+        attributes["align-items"] = "center";
+        attributes["justify-content"] = "center";
+        attributes["background-color"] = BLUE_COLOR;
+        if (user.pictureBGColor) {
+            attributes["background-color"] = user.pictureBGColor;
+        }
+        attributes["font-size"] = getScaledFontSize("12pt");
+        attributes["font-weight"] = REGULAR_FONT_WEIGHT;
+        attributes["color"] = "white";
+        return attributes;
+    }
+    KASClient.getDefaultProfilePicAttributes = getDefaultProfilePicAttributes;
+    function getHorizontalDiv(childrenElements, attributes) {
+        if (attributes === void 0) { attributes = null; }
+        var div = getDiv(Object.assign(getHorizontalDivAttributes(), attributes));
+        for (var i = 0; i < childrenElements.length; i++) {
+            var childElement = childrenElements[i];
+            if (childElement) {
+                addElement(childElement, div);
+            }
+        }
+        return div;
+    }
+    KASClient.getHorizontalDiv = getHorizontalDiv;
+    function getVerticalDiv(childrenElements, attributes) {
+        if (attributes === void 0) { attributes = null; }
+        var div = getDiv(Object.assign(getVerticalDivAttributes(), attributes));
+        for (var i = 0; i < childrenElements.length; i++) {
+            var childElement = childrenElements[i];
+            if (childElement) {
+                addElement(childElement, div);
+            }
+        }
+        return div;
+    }
+    KASClient.getVerticalDiv = getVerticalDiv;
+    function getFlexibleSpace() {
+        return getDiv(getCoverRestOfTheSpaceAttributes());
+    }
+    KASClient.getFlexibleSpace = getFlexibleSpace;
+    function getSpace(length) {
+        if (length === void 0) { length = DEFAULT_SPACE_LENGTH; }
+        return getDiv(getSpaceAttributes(length));
+    }
+    KASClient.getSpace = getSpace;
+    function getLabel(text, attributes, showLinks) {
+        if (text === void 0) { text = null; }
+        if (attributes === void 0) { attributes = null; }
+        if (showLinks === void 0) { showLinks = true; }
+        var labelDiv = getDiv(Object.assign(getLabelAttributes(), attributes));
+        setText(labelDiv, text, true, showLinks);
+        return labelDiv;
+    }
+    KASClient.getLabel = getLabel;
+    function getButton(title, clickEvent, attributes) {
+        if (title === void 0) { title = null; }
+        if (clickEvent === void 0) { clickEvent = null; }
+        if (attributes === void 0) { attributes = null; }
+        var buttonDiv = getDiv(attributes);
+        setText(buttonDiv, title, true, false);
+        addClickEvent(buttonDiv, clickEvent);
+        return buttonDiv;
+    }
+    KASClient.getButton = getButton;
+    function setText(element, text, asHTML, showLinks) {
+        if (text === void 0) { text = null; }
+        if (asHTML === void 0) { asHTML = true; }
+        if (showLinks === void 0) { showLinks = true; }
+        if (asHTML) {
+            element.innerHTML = text.trim();
+        }
+        else {
+            element.innerText = text.trim();
+        }
+        if (showLinks) {
+            highlightLinksInElement(element);
+        }
+    }
+    KASClient.setText = setText;
+    function getBase64CircularImage(data, dimen, attributes) {
+        if (data === void 0) { data = null; }
+        if (dimen === void 0) { dimen = DEFAULT_IMAGE_DIMEN; }
+        if (attributes === void 0) { attributes = null; }
+        return getBase64Image(data, Object.assign(getCircularImageAttributes(dimen), attributes));
+    }
+    KASClient.getBase64CircularImage = getBase64CircularImage;
+    function getCircularImage(path, dimen, attributes) {
+        if (path === void 0) { path = null; }
+        if (dimen === void 0) { dimen = DEFAULT_IMAGE_DIMEN; }
+        if (attributes === void 0) { attributes = null; }
+        return getImage(path, Object.assign(getCircularImageAttributes(dimen), attributes));
+    }
+    KASClient.getCircularImage = getCircularImage;
+    function getBase64Image(data, attributes) {
+        if (data === void 0) { data = null; }
+        if (attributes === void 0) { attributes = null; }
+        var image = getElement("img", Object.assign(getImageAttributes(), attributes));
+        image.src = getBase64Src(data);
+        return image;
+    }
+    KASClient.getBase64Image = getBase64Image;
+    function getBase64Src(data) {
+        return "data:image/png;base64," + data;
+    }
+    KASClient.getBase64Src = getBase64Src;
+    function getImage(path, attributes) {
+        if (path === void 0) { path = null; }
+        if (attributes === void 0) { attributes = null; }
+        var image = getElement("img", Object.assign(getImageAttributes(), attributes));
+        image.src = path;
+        return image;
+    }
+    KASClient.getImage = getImage;
+    function getDiv(attributes) {
+        if (attributes === void 0) { attributes = null; }
+        return getElement("div", attributes);
+    }
+    KASClient.getDiv = getDiv;
+    function getPrettyPrintDiv(attributes) {
+        if (attributes === void 0) { attributes = null; }
+        return getElement("pre", attributes);
+    }
+    KASClient.getPrettyPrintDiv = getPrettyPrintDiv;
+    function getCanvas(width, height, attributes) {
+        if (attributes === void 0) { attributes = null; }
+        var canvas = createHiDPICanvas(width, height);
+        addCSS(canvas, attributes);
+        return canvas;
+    }
+    KASClient.getCanvas = getCanvas;
+    function getLoadingSpinner(attributes) {
+        if (attributes === void 0) { attributes = null; }
+        return getDiv(Object.assign(getLoadingSpinnerAttributes(), attributes));
+    }
+    KASClient.getLoadingSpinner = getLoadingSpinner;
+    function getTable(attributes) {
+        if (attributes === void 0) { attributes = null; }
+        return getElement("table", attributes);
+    }
+    KASClient.getTable = getTable;
+    function getTableRow(attributes) {
+        if (attributes === void 0) { attributes = null; }
+        return getElement("tr", attributes);
+    }
+    KASClient.getTableRow = getTableRow;
+    function getTableDataCell(attributes) {
+        if (attributes === void 0) { attributes = null; }
+        return getElement("td", attributes);
+    }
+    KASClient.getTableDataCell = getTableDataCell;
+    /////////////////// CSS Attributes ///////////////////
+    function getHorizontalDivAttributes() {
+        var attributes = {};
+        attributes["display"] = "flex";
+        attributes["flex-direction"] = "row";
+        attributes["align-items"] = "center";
+        attributes["justify-content"] = "space-between";
+        return attributes;
+    }
+    KASClient.getHorizontalDivAttributes = getHorizontalDivAttributes;
+    function getVerticalDivAttributes() {
+        var attributes = {};
+        attributes["display"] = "flex";
+        attributes["flex-direction"] = "column";
+        attributes["justify-content"] = "space-between";
+        return attributes;
+    }
+    KASClient.getVerticalDivAttributes = getVerticalDivAttributes;
+    function getCircularImageAttributes(dimen) {
+        var attributes = getImageAttributes();
+        attributes["border-radius"] = "50%";
+        attributes["width"] = dimen;
+        attributes["height"] = dimen;
+        attributes["flex"] = "none";
+        return attributes;
+    }
+    KASClient.getCircularImageAttributes = getCircularImageAttributes;
+    function getImageAttributes() {
+        var attributes = {};
+        // Aspect fill
+        attributes["overflow"] = "hidden";
+        attributes["object-fit"] = "cover";
+        return attributes;
+    }
+    KASClient.getImageAttributes = getImageAttributes;
+    function getLabelAttributes() {
+        var attributes = {};
+        attributes["overflow-wrap"] = "break-word";
+        attributes["word-wrap"] = "break-word";
+        attributes["word-break"] = "break-word";
+        // attributes["-ms-hyphens"] = "auto";
+        // attributes["-moz-hyphens"] = "auto";
+        // attributes["-webkit-hyphens"] = "auto";
+        // attributes["hyphens"] = "auto";
+        return attributes;
+    }
+    KASClient.getLabelAttributes = getLabelAttributes;
+    function getSpaceAttributes(length) {
+        var attributes = {};
+        attributes["width"] = length;
+        attributes["height"] = length;
+        attributes["flex"] = "none";
+        return attributes;
+    }
+    KASClient.getSpaceAttributes = getSpaceAttributes;
+    function getCoverRestOfTheSpaceAttributes() {
+        var attributes = {};
+        attributes["flex"] = "1 1 auto";
+        return attributes;
+    }
+    KASClient.getCoverRestOfTheSpaceAttributes = getCoverRestOfTheSpaceAttributes;
+    function getLoadingSpinnerAttributes() {
+        addLoadingSpinnerAnimation();
+        var attributes = {};
+        var borderWidth = "2pt solid ";
+        attributes["border"] = borderWidth + PAGE_BG_COLOR;
+        attributes["border-top"] = borderWidth + LIGHT_BLUE_COLOR;
+        attributes["border-bottom"] = borderWidth + LIGHT_BLUE_COLOR;
+        attributes["border-radius"] = "50%";
+        attributes["width"] = "16pt";
+        attributes["height"] = "16pt";
+        attributes["animation"] = "spin 1.5s ease-in-out infinite";
+        return attributes;
+    }
+    KASClient.getLoadingSpinnerAttributes = getLoadingSpinnerAttributes;
+    var spinnerCSSAdded = false;
+    function addLoadingSpinnerAnimation() {
+        if (spinnerCSSAdded) {
+            return;
+        }
+        var style = document.createElement('style');
+        style.type = 'text/css';
+        style.innerHTML = "@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }";
+        document.getElementsByTagName('head')[0].appendChild(style);
+        spinnerCSSAdded = true;
+    }
+    /////////////////// General Utility ///////////////////
+    function addElement(element, parentElement) {
+        if (element === void 0) { element = null; }
+        if (parentElement === void 0) { parentElement = null; }
+        if (element && parentElement) {
+            parentElement.appendChild(element);
+        }
+    }
+    KASClient.addElement = addElement;
+    function removeElement(element, parentElement) {
+        if (element === void 0) { element = null; }
+        if (parentElement === void 0) { parentElement = null; }
+        if (element == null)
+            return;
+        var parent;
+        if (null == parentElement) {
+            parent = element.parentElement;
+        }
+        else {
+            parent = parentElement;
+        }
+        if (element && parent && parent.contains(element)) {
+            parent.removeChild(element);
+        }
+    }
+    KASClient.removeElement = removeElement;
+    function replaceElement(newElement, oldElement, parentElement) {
+        if (newElement === void 0) { newElement = null; }
+        if (oldElement === void 0) { oldElement = null; }
+        if (parentElement === void 0) { parentElement = null; }
+        if (newElement && oldElement && parentElement) {
+            parentElement.replaceChild(newElement, oldElement);
+        }
+    }
+    KASClient.replaceElement = replaceElement;
+    function clearElement(element) {
+        if (element === void 0) { element = null; }
+        while (element && element.firstChild) {
+            element.removeChild(element.firstChild);
+        }
+    }
+    KASClient.clearElement = clearElement;
+    function getElement(elementTag, attributes) {
+        if (attributes === void 0) { attributes = null; }
+        var element = document.createElement(elementTag);
+        addCSS(element, attributes);
+        return element;
+    }
+    KASClient.getElement = getElement;
+    function addClickEvent(element, clickEvent) {
+        if (clickEvent != null) {
+            element.onclick = clickEvent;
+        }
+    }
+    KASClient.addClickEvent = addClickEvent;
+    function setId(element, id) {
+        if (id != null || id != "") {
+            element.id = id;
+        }
+    }
+    KASClient.setId = setId;
+    function setClass(element, className) {
+        if (className != null || className != "") {
+            element.className = className;
+        }
+    }
+    KASClient.setClass = setClass;
+    function addCSS(element, attributes) {
+        if (attributes != null) {
+            var cssText = "";
+            if (element.style.cssText && element.style.cssText != "") {
+                cssText = element.style.cssText;
+            }
+            for (var key in attributes) {
+                cssText += key + ":" + attributes[key] + ";";
+            }
+            element.style.cssText = cssText;
+        }
+    }
+    KASClient.addCSS = addCSS;
+    function getPixelRatio() {
+        var ctx = document.createElement("canvas").getContext("2d"), dpr = window.devicePixelRatio || 1, bsr = ctx.webkitBackingStorePixelRatio ||
+            ctx.mozBackingStorePixelRatio ||
+            ctx.msBackingStorePixelRatio ||
+            ctx.oBackingStorePixelRatio ||
+            ctx.backingStorePixelRatio || 1;
+        return dpr / bsr;
+    }
+    ;
+    function createHiDPICanvas(w, h, ratio) {
+        if (ratio === void 0) { ratio = 0; }
+        if (!ratio) {
+            ratio = getPixelRatio();
+        }
+        var can = document.createElement("canvas");
+        can.width = w * ratio;
+        can.height = h * ratio;
+        can.style.width = w + "pt";
+        can.style.height = h + "pt";
+        can.getContext("2d").setTransform(ratio, 0, 0, ratio, 0, 0);
+        return can;
+    }
+    // For placeholder text, use below CSS in html
+    /*  [contenteditable = true]:empty:before {
+          content: attr(placeholder);
+          color: #98a3af;
+      display: block;
+    }*/
+    function getContentEditableSpan(text, placeholder, attributes, onInputEvent) {
+        if (text === void 0) { text = ""; }
+        if (placeholder === void 0) { placeholder = ""; }
+        if (attributes === void 0) { attributes = null; }
+        var element = getElement("span", Object.assign(getContentEditableSpanAttributes(), attributes));
+        element.setAttribute("placeholder", placeholder);
+        element.setAttribute('contenteditable', "true");
+        element.innerText = text;
+        var maxLength = attributes["max-length"];
+        var prevString = "";
+        element.addEventListener('input', function () {
+            if (this.innerText.trim() == "") {
+                clearElement(this);
+            }
+            if (maxLength && this.innerText.length > maxLength) {
+                this.innerText = prevString;
+            }
+            else if (maxLength) {
+                prevString = this.innerText;
+            }
+            if (onInputEvent) {
+                onInputEvent();
+            }
+        });
+        // Fix for Bug 2127448 -Span with contenteditable=true is not editable in Oreo in talkbalk mode
+        element.addEventListener('click', function () {
+            element.focus();
+        });
+        return element;
+    }
+    KASClient.getContentEditableSpan = getContentEditableSpan;
+    function getContentEditableSpanAttributes() {
+        var attributes = {};
+        attributes["word-break"] = "break-word";
+        attributes["-webkit-user-select"] = "text";
+        return attributes;
+    }
+    function highlightLinksInElement(element) {
+        if (element == null)
+            return;
+        var allowedTypes = ["label", "div", "p"];
+        if (allowedTypes.indexOf(element.nodeName.toLowerCase()) == -1)
+            return;
+        var text = element.innerHTML;
+        // Regex for Http or ftp url.
+        // (\b(https?|ftp):? : word start with http/https/ftp followed by .
+        // \/\/ : //
+        // [-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|] : any number of character from [-A-Z0-9+&@#\/%?=~_|!:,.;], 
+        //      ends with any of these character [-A-Z0-9+&@#\/%=~_|]
+        var urlRegexHttp = /(\b(https?|ftp):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig; // for http urls
+        // Regex for www url 
+        // (^|[^\/]) : start of line (^) or not start with /.
+        // www\. : www.
+        // [-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|]) : any number of character from [-A-Z0-9+&@#\/%?=~_|!:,.;], 
+        //      ends with any of these character [-A-Z0-9+&@#\/%=~_|]
+        var urlRegexWww = /(^|[^\/])(www\.[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gim; // for www urls
+        // Regex for tel: and sms: detection
+        // (tel|sms):) : word start with tel: or sms:
+        // ([+]?\d{1,3}[.-\s]?)? : Optional : + is optional, 1-3 digit number, ./-/space is optional.
+        // ([(]?\d{1,3}[)]?[.-\s]?){1,2} : 1-3 digit number with/without (), ./-/space is optional. And this can but repaet max 2 times.
+        // \d{4} : 4 digit number.
+        var telSmsRegex = /(\b(tel|sms):)([+]?\d{1,3}[.-\s]?)?([(]?\d{1,3}[)]?[.-\s]?){1,2}\d{4}/gim;
+        text = text.replace(urlRegexHttp, function (url) {
+            return "<a href=\"" + url + "\">" + url + "</a>";
+        });
+        text = text.replace(urlRegexWww, function (url) {
+            var newUrl = url;
+            if (url.toLowerCase().indexOf("www") == 0) {
+                newUrl = "http://" + url;
+                return "<a href=\"" + newUrl + "\">" + url + "</a>";
+            }
+            else if (url.toLowerCase().indexOf("www") == 1) {
+                newUrl = "http://" + url.substring(1);
+                return url.charAt(0) + "<a href=\"" + newUrl + "\">" + url.substring(1) + "</a>";
+            }
+            else {
+                return url;
+            }
+        });
+        text = text.replace(telSmsRegex, function (url) {
+            return "<a href=\"" + url + "\">" + url + "</a>";
+        });
+        element.innerHTML = text;
+    }
+    KASClient.highlightLinksInElement = highlightLinksInElement;
+    function getScaledFontSize(fontSize) {
+        if (KASClient.getPlatform() == KASClient.Platform.Android)
+            return fontSize;
+        if (fontSize == null || fontSize == "" || fontSize == undefined)
+            return fontSize;
+        var size = parseFloat(fontSize);
+        if (isNaN(size))
+            return fontSize;
+        var unit = fontSize.substr(size.toString().length, fontSize.length - size.toString().length);
+        size = size * iOSFontSizeScaleMultiplier;
+        return size.toString() + unit;
+    }
+    KASClient.getScaledFontSize = getScaledFontSize;
+    /**
+     * Offset position of element
+     */
+    function findPosition(element) {
+        var curleft = 0;
+        var curtop = 0;
+        var curright = 0;
+        var curbottom = 0;
+        if (element.offsetParent) {
+            do {
+                curleft += element.offsetLeft;
+                curtop += element.offsetTop;
+            } while (element = element.offsetParent);
+        }
+        return [curtop, curleft];
+    }
+    KASClient.findPosition = findPosition;
+    /**
+     * Style value of element
+     */
+    function getStyle(element, styleName) {
+        // J/S Pro Techniques p136
+        if (element.style[styleName]) {
+            return element.style[styleName];
+        }
+        else if (element.currentStyle) {
+            return element.currentStyle[styleName];
+        }
+        else if (document.defaultView && document.defaultView.getComputedStyle) {
+            styleName = styleName.replace(/([A-Z])/g, "-$1");
+            styleName = styleName.toLowerCase();
+            var s = document.defaultView.getComputedStyle(element, "");
+            return s && s.getPropertyValue(styleName);
+        }
+        else {
+            return null;
+        }
+    }
+    KASClient.getStyle = getStyle;
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
@@ -1579,9 +2559,6 @@ var KASClient;
                 case KASClient.GET_PACKAGE_PROPERTIES_COMMAND:
                     getMockData(["packageProperties"], successCallback);
                     return;
-                case KASClient.SEND_CHAT_CARD_TEMPLATE:
-                    /* NOT SUPPORTED */
-                    break;
                 case KASClient.SHOULD_SEE_SURVEY_SUMMARY:
                     getMockData(["shouldSeeSurveySummary"], successCallback);
                     return;
@@ -1727,6 +2704,7 @@ var KASClient;
                 case KASClient.SHOW_ALERT_COMMAND:
                 case KASClient.UPDATE_RESPONSE_COMMAND:
                 case KASClient.CREATE_REQUEST_COMMAND:
+                case KASClient.CREATE_REQUEST_WITH_RESPONSES_COMMAND:
                 case KASClient.CLOSE_CARD_COMMAND:
                 case KASClient.SHOW_LIKES_AND_COMMENTS_PAGE_COMMAND:
                 case KASClient.SHOW_IMAGE_FULL_SCREEN_COMMAND:
@@ -1740,7 +2718,6 @@ var KASClient;
                 case KASClient.SEND_SURVEY_URL_COMMAND:
                 case KASClient.SCREEN_CHANGED_COMMAND:
                 case KASClient.LOG_ERROR_COMMAND:
-                case KASClient.SEND_CHAT_CARD_TEMPLATE:
                 case KASClient.ADD_COMMENT_COMMAND:
                 case KASClient.SHOULD_SEE_SURVEY_SUMMARY:
                 case KASClient.CAN_RESPOND_TO_SURVEY:
@@ -1757,6 +2734,7 @@ var KASClient;
                 case KASClient.CUSTOMIZE_NATIVE_TOOLBAR:
                 case KASClient.GET_CLIENT_DETAILS:
                 case KASClient.SHOW_LOCATION_MAP:
+                case KASClient.OPEN_LINK_IN_BROWSER:
                     // For these commands, we don't need an Async API
                     callNativeCommandSync(command, args, successCallback, errorCallback);
                     break;
@@ -1805,6 +2783,15 @@ var KASClient;
                 case KASClient.GET_INTEGERATION_SERVICE_TOKEN_COMMAND:
                     KaizalaPlatform.getIntegerationServiceToken(successCallback, errorCallback);
                     break;
+                case KASClient.PERFORM_SPEECH_TO_TEXT:
+                    KaizalaPlatform.performSpeechToText(successCallback, errorCallback);
+                    break;
+                case KASClient.SET_SECURED_VALUE:
+                    KaizalaPlatform.setSecuredValue(args[0] /* Key */, args[1] /* Value */);
+                    break;
+                case KASClient.GET_SECURED_VALUE:
+                    KaizalaPlatform.getSecuredValue(args[0] /* Key */, successCallback, errorCallback);
+                    break;
                 case KASClient.GET_DEVICE_ID_COMMAND:
                     KaizalaPlatform.getDeviceId(successCallback, errorCallback);
                     break;
@@ -1834,6 +2821,9 @@ var KASClient;
                     return;
                 case KASClient.GET_PACKAGE_PROPERTIES_COMMAND:
                     KaizalaPlatform.getPackagePropertiesAsync(successCallback, errorCallback);
+                    return;
+                case KASClient.GET_FORM_USER_CAPABILITIES:
+                    KaizalaPlatform.getFormUserCapabilitiesAsync(successCallback, errorCallback);
                     return;
                 case KASClient.UPDATE_SURVEY_METADATA:
                     KaizalaPlatform.updateSurveyMetadata(args, successCallback, errorCallback);
@@ -1895,6 +2885,24 @@ var KASClient;
                 case KASClient.SEND_NOTIFICATION:
                     KaizalaPlatform.sendNotification(args[0], successCallback, errorCallback);
                     return;
+                case KASClient.PERFORM_AUTHENTICATION:
+                    KaizalaPlatform.performAuthenticationForType(args[0], successCallback, errorCallback);
+                    return;
+                case KASClient.IS_AUTHENTICATION_TYPE_SUPPORTED:
+                    KaizalaPlatform.checkAuthenticationSupportForType(args[0], successCallback, errorCallback);
+                    return;
+                case KASClient.GET_BATCH_RESPONSES_COMMAND:
+                    KaizalaPlatform.getAllFormResponsesAsync(args[0], args[1], successCallback, errorCallback);
+                    return;
+                case KASClient.UPDATE_BATCH_RESPONSES_COMMAND:
+                    KaizalaPlatform.updateBatchMyResponses(JSON.stringify(args[0]), args[1], args[2], args[3]);
+                    return;
+                case KASClient.CREATE_REQUEST_COMMAND_V2:
+                    KaizalaPlatform.createRequestV2(args[0], args[1], args[2]);
+                    break;
+                case KASClient.PERFORM_HTTP_REQUEST:
+                    KaizalaPlatform.performHTTPRequest(args[0], args[1], successCallback, errorCallback);
+                    break;
                 default:
             }
         }
@@ -1975,6 +2983,9 @@ var KASClient;
                 case KASClient.CREATE_REQUEST_COMMAND:
                     KaizalaPlatform.createRequest(args[0], args[1], args[2], args[3]);
                     break;
+                case KASClient.CREATE_REQUEST_WITH_RESPONSES_COMMAND:
+                    KaizalaPlatform.createRequestWithResponses(args[0], JSON.stringify(args[1]), args[2], args[3], args[4]);
+                    break;
                 case KASClient.CLOSE_CARD_COMMAND:
                     KaizalaPlatform.closeCard();
                     break;
@@ -2035,9 +3046,6 @@ var KASClient;
                 case KASClient.GET_PACKAGE_PROPERTIES_COMMAND:
                     result = [KaizalaPlatform.getPackageProperties()];
                     break;
-                case KASClient.SEND_CHAT_CARD_TEMPLATE:
-                    KaizalaPlatform.sendChatCardTemplate(args[0]);
-                    break;
                 case KASClient.SHOULD_SEE_SURVEY_SUMMARY:
                     result = [KaizalaPlatform.shouldSeeSurveySummary()];
                     break;
@@ -2057,7 +3065,7 @@ var KASClient;
                     KaizalaPlatform.logToReport(args[0]);
                     break;
                 case KASClient.RECORD_EVENT_COMMAND:
-                    KaizalaPlatform.recordEvent(args[0], args[1], JSON.stringify(args[2]));
+                    KaizalaPlatform.recordEvent(args[0], args[1], args[2]);
                     break;
                 case KASClient.CREATE_MEETING_REQUEST:
                     KaizalaPlatform.createMeetingRequest(args[0], args[1], args[2], args[3], args[4], args[5]);
@@ -2079,6 +3087,9 @@ var KASClient;
                     break;
                 case KASClient.SHOW_LOCATION_MAP:
                     KaizalaPlatform.showLocationMap(args[0]);
+                    break;
+                case KASClient.OPEN_LINK_IN_BROWSER:
+                    KaizalaPlatform.openLinkInBrowser(args[0]);
                     break;
                 default:
             }
@@ -2103,6 +3114,7 @@ var KASClient;
     KASClient.GET_SURVEY_SUMMARY_WITH_NOTIFY_COMMAND = "getSurveySummaryWithNotify";
     KASClient.GET_SURVEY_URL_COMMAND = "getSurveyURL";
     KASClient.GET_RESPONSES_COMMAND = "getResponses";
+    KASClient.GET_BATCH_RESPONSES_COMMAND = "getBatchResponses";
     KASClient.GET_LIKES_AND_COMMENTS_DATA_COMMAND = "getLikesAndCommentsData";
     KASClient.GET_ASSET_PATHS_COMMAND = "getAssetPaths";
     KASClient.GET_LOCALIZED_STRINGS_COMMAND = "getLocalizedStrings";
@@ -2118,7 +3130,9 @@ var KASClient;
     KASClient.CLOSE_CARD_COMMAND = "closeCard";
     KASClient.SHOW_ALERT_COMMAND = "showAlert";
     KASClient.CREATE_REQUEST_COMMAND = "createRequest";
+    KASClient.CREATE_REQUEST_WITH_RESPONSES_COMMAND = "createRequestWithResponses";
     KASClient.UPDATE_RESPONSE_COMMAND = "updateResponse";
+    KASClient.UPDATE_BATCH_RESPONSES_COMMAND = "updateBatchResponses";
     KASClient.SHOW_LIKES_AND_COMMENTS_PAGE_COMMAND = "showLikesAndCommentsPage";
     KASClient.SHOW_IMAGE_FULL_SCREEN_COMMAND = "showImageInFullScreen";
     KASClient.RESPOND_TO_SURVEY_COMMAND = "respondToSurvey";
@@ -2136,9 +3150,9 @@ var KASClient;
     KASClient.SCREEN_CHANGED_COMMAND = "screenChanged";
     KASClient.LOG_ERROR_COMMAND = "logError";
     KASClient.GET_PACKAGE_PROPERTIES_COMMAND = "getPackageProperties";
+    KASClient.GET_FORM_USER_CAPABILITIES = "getFormUserCapabilities";
     KASClient.GET_CLIENT_SUPPORTED_SDK_VERSION_COMMAND = "getClientSupportedSDKVersion";
     KASClient.OPEN_STORE_LINK_COMMAND = "openStoreLink";
-    KASClient.SEND_CHAT_CARD_TEMPLATE = "sendChatCardTemplate";
     KASClient.UPDATE_SURVEY_METADATA = "updateSurveyMetadata";
     KASClient.GET_LOCALIZED_MINIAPP_STRINGS = "getLocalizedMiniAppStrings";
     KASClient.SHOULD_SEE_SURVEY_SUMMARY = "shouldSeeSurveySummary";
@@ -2177,6 +3191,14 @@ var KASClient;
     KASClient.GET_CONVERSATION_TYPE_COMMAND = "getConversationType";
     KASClient.GET_CLIENT_DETAILS = "getClientDetails";
     KASClient.SHOW_LOCATION_MAP = "showLocationMap";
+    KASClient.PERFORM_AUTHENTICATION = "performAuthentication";
+    KASClient.IS_AUTHENTICATION_TYPE_SUPPORTED = "isAuthenticationTypeSupported";
+    KASClient.OPEN_LINK_IN_BROWSER = "openLinkInBrowser";
+    KASClient.CREATE_REQUEST_COMMAND_V2 = "createRequestV2";
+    KASClient.PERFORM_SPEECH_TO_TEXT = "performSpeechToText";
+    KASClient.SET_SECURED_VALUE = "setSecuredValue";
+    KASClient.GET_SECURED_VALUE = "getSecuredValue";
+    KASClient.PERFORM_HTTP_REQUEST = "performHTTPRequest";
     // Note: If you are adding new commands here, please increment
     // the supported SDK version in clients as well as add details
     // of that version in VersionUtil.ts
@@ -2386,6 +3408,16 @@ var KASClient;
     }
     KASClient.getResponsesJson = getResponsesJson;
     ///////////////////////////////////////////////////////
+    function getBatchResponsesJson(offset, batchSize, jsonCallback) {
+        if (offset === void 0) { offset = 0; }
+        if (batchSize === void 0) { batchSize = 100; }
+        if (jsonCallback === void 0) { jsonCallback = null; }
+        var value = getCorrelationIdForCallback(jsonCallback, "onGetJson");
+        sanitizeCallback(value["correlationId"]);
+        KASClient.callNativeCommand(KASClient.GET_BATCH_RESPONSES_COMMAND, [offset, batchSize], value["successCallback"], value["errorCallback"]);
+    }
+    KASClient.getBatchResponsesJson = getBatchResponsesJson;
+    ///////////////////////////////////////////////////////
     function getAssetPathsJson(jsonCallback) {
         if (jsonCallback === void 0) { jsonCallback = null; }
         var value = getCorrelationIdForCallback(jsonCallback, "onGetJson");
@@ -2473,6 +3505,28 @@ var KASClient;
         KASClient.callNativeCommand(KASClient.GET_INTEGERATION_SERVICE_TOKEN_COMMAND, null, value["successCallback"], value["errorCallback"]);
     }
     KASClient.getIntegerationServiceToken = getIntegerationServiceToken;
+    ///////////////////////////////////////////////////////
+    function performSpeechToText(stringCallback) {
+        if (stringCallback === void 0) { stringCallback = null; }
+        var value = getCorrelationIdForCallback(stringCallback, "onGetString");
+        KASClient.callNativeCommand(KASClient.PERFORM_SPEECH_TO_TEXT, null, value["successCallback"], value["errorCallback"]);
+    }
+    KASClient.performSpeechToText = performSpeechToText;
+    ///////////////////////////////////////////////////////
+    function setSecuredValue(key, value) {
+        if (key === void 0) { key = ""; }
+        if (value === void 0) { value = ""; }
+        KASClient.callNativeCommand(KASClient.SET_SECURED_VALUE, [key, value]);
+    }
+    KASClient.setSecuredValue = setSecuredValue;
+    ///////////////////////////////////////////////////////
+    function getSecuredValue(key, stringCallback) {
+        if (key === void 0) { key = ""; }
+        if (stringCallback === void 0) { stringCallback = null; }
+        var value = getCorrelationIdForCallback(stringCallback, "onGetString");
+        KASClient.callNativeCommand(KASClient.GET_SECURED_VALUE, [key], value["successCallback"], value["errorCallback"]);
+    }
+    KASClient.getSecuredValue = getSecuredValue;
     ///////////////////////////////////////////////////////
     function getDeviceId(stringCallback) {
         if (stringCallback === void 0) { stringCallback = null; }
@@ -2589,6 +3643,15 @@ var KASClient;
     }
     KASClient.sendResponse = sendResponse;
     ///////////////////////////////////////////////////////
+    function sendBatchResponse(responseJson, showInChatCanvas, isAnonymous, shouldDismiss) {
+        if (responseJson === void 0) { responseJson = null; }
+        if (showInChatCanvas === void 0) { showInChatCanvas = false; }
+        if (isAnonymous === void 0) { isAnonymous = false; }
+        if (shouldDismiss === void 0) { shouldDismiss = true; }
+        KASClient.callNativeCommand(KASClient.UPDATE_BATCH_RESPONSES_COMMAND, [responseJson, showInChatCanvas, isAnonymous, shouldDismiss]);
+    }
+    KASClient.sendBatchResponse = sendBatchResponse;
+    ///////////////////////////////////////////////////////
     function createRequest(surveyJson, payload, shouldInflate, shouldDismiss) {
         if (surveyJson === void 0) { surveyJson = null; }
         if (payload === void 0) { payload = null; }
@@ -2597,6 +3660,24 @@ var KASClient;
         KASClient.callNativeCommand(KASClient.CREATE_REQUEST_COMMAND, [JSON.stringify(surveyJson), payload, shouldInflate, shouldDismiss]);
     }
     KASClient.createRequest = createRequest;
+    ///////////////////////////////////////////////////////
+    function createRequestWithResponses(surveyJson, responses, shouldDismiss, isResponseAnonymous, shouldSendToSubscribers) {
+        if (surveyJson === void 0) { surveyJson = null; }
+        if (responses === void 0) { responses = null; }
+        if (shouldDismiss === void 0) { shouldDismiss = true; }
+        if (isResponseAnonymous === void 0) { isResponseAnonymous = false; }
+        if (shouldSendToSubscribers === void 0) { shouldSendToSubscribers = true; }
+        KASClient.callNativeCommand(KASClient.CREATE_REQUEST_WITH_RESPONSES_COMMAND, [JSON.stringify(surveyJson), responses, shouldDismiss, isResponseAnonymous, shouldSendToSubscribers]);
+    }
+    KASClient.createRequestWithResponses = createRequestWithResponses;
+    //////////////////////////////////////////////////////
+    function createRequestV2(surveyJson, shouldDismiss, shouldSendToSubscribers) {
+        if (surveyJson === void 0) { surveyJson = null; }
+        if (shouldDismiss === void 0) { shouldDismiss = true; }
+        if (shouldSendToSubscribers === void 0) { shouldSendToSubscribers = true; }
+        KASClient.callNativeCommand(KASClient.CREATE_REQUEST_COMMAND_V2, [JSON.stringify(surveyJson), shouldDismiss, shouldSendToSubscribers]);
+    }
+    KASClient.createRequestV2 = createRequestV2;
     ///////////////////////////////////////////////////////
     function updateRequest(fields, payload, shouldInflate, boolCallback) {
         if (fields === void 0) { fields = null; }
@@ -2648,6 +3729,12 @@ var KASClient;
         KASClient.callNativeCommand(KASClient.OPEN_IMMERSIVE_VIEW_FOR_ATTACHMENT, [attachmentObj]);
     }
     KASClient.openImmersiveViewForAttachment = openImmersiveViewForAttachment;
+    ///////////////////////////////////////////////////////
+    function openHttpLinkInBrowser(urlStr) {
+        if (urlStr === void 0) { urlStr = null; }
+        KASClient.callNativeCommand(KASClient.OPEN_LINK_IN_BROWSER, [urlStr]);
+    }
+    KASClient.openHttpLinkInBrowser = openHttpLinkInBrowser;
     ///////////////////////////////////////////////////////
     function hasStorageAccessForType(type, boolCallback) {
         if (type === void 0) { type = KASClient.KASAttachmentType.Image; }
@@ -2734,6 +3821,13 @@ var KASClient;
     }
     KASClient.getPackageProperties = getPackageProperties;
     ///////////////////////////////////////////////////////////
+    function getFormUserCapabilities(jsonCallback) {
+        if (jsonCallback === void 0) { jsonCallback = null; }
+        var value = getCorrelationIdForCallback(jsonCallback, "onGetJson");
+        KASClient.callNativeCommand(KASClient.GET_FORM_USER_CAPABILITIES, null, value["successCallback"], value["errorCallback"]);
+    }
+    KASClient.getFormUserCapabilities = getFormUserCapabilities;
+    ///////////////////////////////////////////////////////////
     function getClientSupportedSDKVersion(stringCallback, bypassVersionChecking) {
         if (stringCallback === void 0) { stringCallback = null; }
         if (bypassVersionChecking === void 0) { bypassVersionChecking = false; }
@@ -2746,12 +3840,6 @@ var KASClient;
         KASClient.callNativeCommand(KASClient.OPEN_STORE_LINK_COMMAND);
     }
     KASClient.openStoreLink = openStoreLink;
-    ///////////////////////////////////////////////////////
-    function sendCardTemplate(template) {
-        if (template === void 0) { template = null; }
-        KASClient.callNativeCommand(KASClient.SEND_CHAT_CARD_TEMPLATE, [JSON.stringify(template)]);
-    }
-    KASClient.sendCardTemplate = sendCardTemplate;
     ///////////////////////////////////////////////////////////
     function updateSurveyMetadata(args, boolCallback) {
         if (args === void 0) { args = []; }
@@ -2820,7 +3908,7 @@ var KASClient;
         if (eventName === void 0) { eventName = ""; }
         if (eventType === void 0) { eventType = ""; }
         if (props === void 0) { props = JSON.parse("{}"); }
-        KASClient.callNativeCommand(KASClient.RECORD_EVENT_COMMAND, [eventName, eventType, props]);
+        KASClient.callNativeCommand(KASClient.RECORD_EVENT_COMMAND, [eventName, eventType, JSON.stringify(props)]);
     }
     KASClient.recordEventNative = recordEventNative;
     ///////////////////////////////////////////////////////
@@ -2900,6 +3988,27 @@ var KASClient;
     }
     KASClient.showLocationMap = showLocationMap;
     ///////////////////////////////////////////////////////////
+    function performAuthentication(authenticationType, boolCallback) {
+        if (boolCallback === void 0) { boolCallback = null; }
+        var value = getCorrelationIdForCallback(boolCallback, "onGetBool");
+        KASClient.callNativeCommand(KASClient.PERFORM_AUTHENTICATION, [authenticationType], value["successCallback"], value["errorCallback"]);
+    }
+    KASClient.performAuthentication = performAuthentication;
+    ///////////////////////////////////////////////////////////
+    function isAuthenticationTypeSupported(authenticationType, jsonCallback) {
+        if (jsonCallback === void 0) { jsonCallback = null; }
+        var value = getCorrelationIdForCallback(jsonCallback, "onGetBool");
+        KASClient.callNativeCommand(KASClient.IS_AUTHENTICATION_TYPE_SUPPORTED, [authenticationType], value["successCallback"], value["errorCallback"]);
+    }
+    KASClient.isAuthenticationTypeSupported = isAuthenticationTypeSupported;
+    ///////////////////////////////////////////////////////////
+    function performHTTPRequestNative(url, parameters, callback) {
+        if (parameters === void 0) { parameters = "{}"; }
+        var value = getCorrelationIdForCallback(callback, "onGetString");
+        KASClient.callNativeCommand(KASClient.PERFORM_HTTP_REQUEST, [url, parameters], value["successCallback"], value["errorCallback"]);
+    }
+    KASClient.performHTTPRequestNative = performHTTPRequestNative;
+    ///////////////////////////////////////////////////////////
     var currentLocale = null;
     function convertErrorCodeToStringAsync(errorCode, callback) {
         // A block to avoid repetitive code
@@ -2945,19 +4054,25 @@ var KASClient;
             // 300, Unknown Error
             "300": "Unknown Error",
             // 400: An invalid operation
-            "400": "Wrong Operation"
+            "400": "Wrong Operation",
+            // 429: Request failed due to rate limiting. Too many requests.
+            "429": "Too many requests in short time. Please try again after some time."
         },
         "hi": {
             "100": "We could not fetch the results due to network error. Please try again later",
             "200": "Something went wrong, Please try again",
             "300": "Unknown Error",
-            "400": "Wrong Operation"
+            "400": "Wrong Operation",
+            // 429: Request failed due to rate limiting. Too many requests.
+            "429": "Too many requests in short time. Please try again after some time."
         },
         "te": {
             "100": "We could not fetch the results due to network error. Please try again later",
             "200": "Something went wrong, please try again",
             "300": "Unknown Error",
-            "400": "Wrong Operation"
+            "400": "Wrong Operation",
+            // 429: Request failed due to rate limiting. Too many requests.
+            "429": "Too many requests in short time. Please try again after some time."
         }
     };
 })(KASClient || (KASClient = {}));
@@ -2978,7 +4093,7 @@ var KASClient;
                 callNative(command, args, successCallback, errorCallback);
             }
             else if (!__NO_HTML__) {
-                KASClient.UI.showIncompatibleScreen();
+                KASClient.showIncompatibleScreen();
             }
             else {
                 throw "VersionIncompatible";
@@ -3006,6 +4121,9 @@ var KASClient;
         else if (KASClient.isRenderedForWebClient()) {
             KASClient.WebClient.callNativeCommand(command, args, successCallback, errorCallback);
         }
+        else if (KASClient.isRenderedForWebApp()) {
+            KASClient.WebApp.callNativeCommand(command, args, successCallback, errorCallback);
+        }
         else {
             if (!KASClient.shouldMockData()) {
                 console.assert(false, "Unknwon platform");
@@ -3017,17 +4135,58 @@ var KASClient;
 (function (KASClient) {
     var iOS;
     (function (iOS) {
+        var WebView;
+        (function (WebView) {
+            WebView[WebView["Unknown"] = 0] = "Unknown";
+            WebView[WebView["UIWebView"] = 1] = "UIWebView";
+            WebView[WebView["WKWebView"] = 2] = "WKWebView";
+        })(WebView = iOS.WebView || (iOS.WebView = {}));
+        var webViewToUse = WebView.Unknown;
+        function getWebview() {
+            var webview = WebView.Unknown;
+            var lte9 = /constructor/i.test(window.HTMLElement);
+            var idb = !!window.indexedDB;
+            var nav = window.navigator;
+            var ua = nav.userAgent;
+            if (ua.indexOf('Safari') !== -1 && ua.indexOf('Version') !== -1 && !nav.standalone) {
+                webview = WebView.WKWebView;
+            }
+            else if ((!idb && lte9) || !window.statusbar.visible) {
+                webview = WebView.UIWebView;
+            }
+            else if ((window.webkit && window.webkit.messageHandlers) || !lte9 || idb) {
+                webview = WebView.WKWebView;
+            }
+            return webview;
+        }
+        iOS.getWebview = getWebview;
         function callNativeCommand(command, args, successCallback, errorCallback) {
             if (args === void 0) { args = null; }
             if (successCallback === void 0) { successCallback = null; }
             if (errorCallback === void 0) { errorCallback = null; }
-            var url = "surveyjs2objc://";
             var callInfo = {
                 functionname: command,
                 args: args,
                 success: successCallback,
                 error: errorCallback
             };
+            if (webViewToUse == WebView.Unknown)
+                webViewToUse = getWebview();
+            if (webViewToUse == WebView.WKWebView) {
+                callMethodForWKWebView(callInfo);
+            }
+            else {
+                callMethodForUIWebView(callInfo);
+            }
+        }
+        iOS.callNativeCommand = callNativeCommand;
+        // Calling WKWebView's user script
+        function callMethodForWKWebView(callInfo) {
+            window.webkit.messageHandlers.callNative.postMessage(callInfo);
+        }
+        // Changing window.location, for UIWebView
+        function callMethodForUIWebView(callInfo) {
+            var url = "surveyjs2objc://";
             url += rfc3986EncodeURIComponent(JSON.stringify(callInfo));
             // Below approach of changing window's location is in case of
             // multiple consecutive requests, these can nullify each other!!!
@@ -3039,7 +4198,6 @@ var KASClient;
             iframe.parentNode.removeChild(iframe);
             iframe = null;
         }
-        iOS.callNativeCommand = callNativeCommand;
         // encodeURIComponent escapes all characters except: -_.!~*'()
         // But iOS follows RFC3986 encoding which supports these characters.
         // So taking extra care for them!
@@ -3088,7 +4246,6 @@ var KASClient;
                 case KASClient.SEND_SURVEY_URL_COMMAND:
                 case KASClient.SCREEN_CHANGED_COMMAND:
                 case KASClient.LOG_ERROR_COMMAND:
-                case KASClient.SEND_CHAT_CARD_TEMPLATE:
                     // For these commands, we don't need an Async API
                     callNativeCommandSync(command, args, successCallback, errorCallback);
                     break;
@@ -3286,9 +4443,6 @@ var KASClient;
                 case KASClient.GET_PACKAGE_PROPERTIES_COMMAND:
                     result = [KaizalaPlatform.getPackageProperties()];
                     break;
-                case KASClient.SEND_CHAT_CARD_TEMPLATE:
-                    KaizalaPlatform.sendChatCardTemplate(args[0]);
-                    break;
                 default:
             }
             if (successCallback) {
@@ -3301,6 +4455,44 @@ var KASClient;
             }
         }
     })(UWP = KASClient.UWP || (KASClient.UWP = {}));
+})(KASClient || (KASClient = {}));
+var KASClient;
+(function (KASClient) {
+    var WebApp;
+    (function (WebApp) {
+        function callNativeCommand(command, args, successCallback, errorCallback) {
+            if (args === void 0) { args = null; }
+            if (successCallback === void 0) { successCallback = null; }
+            if (errorCallback === void 0) { errorCallback = null; }
+            if (command === KASClient.GET_SURVEY_SUMMARY_WITH_NOTIFY_COMMAND) {
+                var localCb_1 = args[0];
+                var serverCb_1 = args[1];
+                args[0] = function (params) {
+                    callFunction(localCb_1, params);
+                };
+                args[1] = function (params) {
+                    callFunction(serverCb_1, params);
+                };
+            }
+            window.parent["executeCommand"](command, args, function (result) {
+                callFunction(successCallback, result);
+            }, function (error) {
+                callFunction(errorCallback, error);
+            });
+        }
+        WebApp.callNativeCommand = callNativeCommand;
+        function callFunction(func, params) {
+            if (params === void 0) { params = null; }
+            if (func) {
+                if (params) {
+                    KASClient.executeFunction(func, params);
+                }
+                else {
+                    KASClient.executeFunction(func);
+                }
+            }
+        }
+    })(WebApp = KASClient.WebApp || (KASClient.WebApp = {}));
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
@@ -3433,6 +4625,8 @@ var KASClient;
     // To avoid HTML injections, we sanitize all HTML tags
     // by replacing all '<' with '&lt;' and '>' with '&gt;'
     function sanitizeHtmlTags(string) {
+        if (isEmptyString(string))
+            return string;
         var tagsToReplace = {
             '<': '&lt;',
             '>': '&gt;'
@@ -3547,15 +4741,26 @@ var KASClient;
     }
     KASClient.jsonIsArray = jsonIsArray;
     function isURL(str) {
+        return isLocalURL(str) || isRemoteURL(str);
+    }
+    KASClient.isURL = isURL;
+    function isLocalURL(str) {
         if (typeof str === 'string' &&
-            (str.lastIndexOf("http://", 0) == 0 ||
-                str.lastIndexOf("https://", 0) == 0 ||
-                str.lastIndexOf("file://", 0) == 0)) {
+            str.toLowerCase().lastIndexOf("file://", 0) == 0) {
             return true;
         }
         return false;
     }
-    KASClient.isURL = isURL;
+    KASClient.isLocalURL = isLocalURL;
+    function isRemoteURL(str) {
+        if (typeof str === 'string' &&
+            (str.toLowerCase().lastIndexOf("http://", 0) == 0 ||
+                str.toLowerCase().lastIndexOf("https://", 0) == 0)) {
+            return true;
+        }
+        return false;
+    }
+    KASClient.isRemoteURL = isRemoteURL;
     function isListOfImageAttachments(str) {
         try {
             var json = JSON.parse(str);
@@ -3726,7 +4931,7 @@ var KASClient;
     }
     KASClient.formatSize = formatSize;
     function isEmptyString(str) {
-        if (str == undefined || str == null || str.length == 0) {
+        if (str == undefined || str == null || typeof str !== 'string' || str.trim().length == 0) {
             return true;
         }
         return false;
@@ -3769,6 +4974,10 @@ var KASClient;
         return window.parent.hasOwnProperty("__WEB_CLIENT__");
     }
     KASClient.isRenderedForWebClient = isRenderedForWebClient;
+    function isRenderedForWebApp() {
+        return window.parent.hasOwnProperty("__WEB_APP__");
+    }
+    KASClient.isRenderedForWebApp = isRenderedForWebApp;
     function inIframe() {
         try {
             return window.self !== window.top;
@@ -3788,7 +4997,7 @@ var KASClient;
      * We are tracking this bug with Apple bug ID : 35080721
      */
     function isIOSVersionAbove11() {
-        return (KASClient.getPlatform() == KASClient.Platform.iOS && KASClient.getVersion() >= 11);
+        return (KASClient.getPlatform() == KASClient.Platform.iOS && KASClient.getVersion() >= 11 && KASClient.iOS.getWebview() == KASClient.iOS.WebView.UIWebView);
     }
     KASClient.isIOSVersionAbove11 = isIOSVersionAbove11;
     /**
@@ -3801,6 +5010,53 @@ var KASClient;
         return props;
     }
     KASClient.getErrorPropsForTelemetry = getErrorPropsForTelemetry;
+    /**
+     * Removes an element from the given array at the specified index.
+     * Use negative values for index to specify the position from the end of the array.
+     *
+     * @param array
+     * @param index
+     */
+    function removeElementFromArray(array, index) {
+        array.splice(index, 1);
+        return array;
+    }
+    KASClient.removeElementFromArray = removeElementFromArray;
+})(KASClient || (KASClient = {}));
+var KASClient;
+(function (KASClient) {
+    function length(input) {
+        if (input)
+            return input.length;
+        return 0;
+    }
+    function match(pattern, input) {
+        if (input && pattern)
+            return input.match(pattern) ? input.match(pattern).length > 0 : false;
+        return false;
+    }
+    function toInt(input) {
+        return Number(input);
+    }
+    add_operation("len", length);
+    add_operation("match", match);
+    add_operation("toInt", toInt);
+    function add_operation(operatorName, operation) {
+        jsonLogic.add_operation(operatorName, operation);
+    }
+    function isDataValidAgainstRule(rule, responseObj) {
+        if (rule === void 0) { rule = JSON.parse("{}"); }
+        if (responseObj === void 0) { responseObj = JSON.parse("{}"); }
+        var isValid = false;
+        try {
+            isValid = jsonLogic.apply(rule, responseObj);
+        }
+        catch (error) {
+            KASClient.App.logError("JsonLogic error - " + error);
+        }
+        return isValid;
+    }
+    KASClient.isDataValidAgainstRule = isDataValidAgainstRule;
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
@@ -3828,6 +5084,11 @@ var KASClient;
         Version.VERSION_18 = "18";
         Version.VERSION_19 = "19";
         Version.VERSION_20 = "20";
+        Version.VERSION_21 = "21"; // Support for validations, dependency and optional questions.
+        Version.VERSION_22 = "22";
+        Version.VERSION_23 = "23";
+        Version.VERSION_24 = "24";
+        Version.VERSION_25 = "25";
         var commandVersion = {};
         // Commands introduced in version-0 SDK
         commandVersion[KASClient.CLOSE_CARD_COMMAND] = Version.VERSION_0;
@@ -3866,7 +5127,6 @@ var KASClient;
         // Commands introduced in version-3 SDK
         commandVersion[KASClient.GET_CLIENT_SUPPORTED_SDK_VERSION_COMMAND] = Version.VERSION_3;
         commandVersion[KASClient.OPEN_STORE_LINK_COMMAND] = Version.VERSION_3;
-        commandVersion[KASClient.SEND_CHAT_CARD_TEMPLATE] = Version.VERSION_3;
         commandVersion[KASClient.UPDATE_SURVEY_METADATA] = Version.VERSION_3;
         commandVersion[KASClient.ADD_COMMENT_COMMAND] = Version.VERSION_3;
         commandVersion[KASClient.GET_SURVEY_AGGREGATED_SUMMARY_JSON_COMMAND] = Version.VERSION_3;
@@ -3925,6 +5185,24 @@ var KASClient;
         // Commands introduced in version-20 SDK
         commandVersion[KASClient.RECORD_EVENT_COMMAND] = Version.VERSION_20;
         commandVersion[KASClient.SHOW_LOCATION_MAP] = Version.VERSION_20;
+        // No commands introduced in version-21 SDK
+        // Added new fields in Appmodel's question
+        // Commands introduced in Version-22 SDK
+        commandVersion[KASClient.IS_AUTHENTICATION_TYPE_SUPPORTED] = Version.VERSION_22;
+        commandVersion[KASClient.PERFORM_AUTHENTICATION] = Version.VERSION_22;
+        commandVersion[KASClient.GET_FORM_USER_CAPABILITIES] = Version.VERSION_22;
+        // Commands introduced in Version-23 SDK
+        commandVersion[KASClient.OPEN_LINK_IN_BROWSER] = Version.VERSION_23;
+        // Commands introduced in Version-24 SDK
+        commandVersion[KASClient.PERFORM_SPEECH_TO_TEXT] = Version.VERSION_24;
+        commandVersion[KASClient.SET_SECURED_VALUE] = Version.VERSION_24;
+        commandVersion[KASClient.GET_SECURED_VALUE] = Version.VERSION_24;
+        commandVersion[KASClient.CREATE_REQUEST_COMMAND_V2] = Version.VERSION_24;
+        commandVersion[KASClient.PERFORM_HTTP_REQUEST] = Version.VERSION_24;
+        //Commands introduced in Version-25 SDK
+        commandVersion[KASClient.GET_BATCH_RESPONSES_COMMAND] = Version.VERSION_25;
+        commandVersion[KASClient.CREATE_REQUEST_WITH_RESPONSES_COMMAND] = Version.VERSION_25;
+        commandVersion[KASClient.UPDATE_BATCH_RESPONSES_COMMAND] = Version.VERSION_25;
         // The below method doesn't consider minor version
         function commandIsCompatible(command, callback) {
             if (!commandVersion.hasOwnProperty(command)) {
@@ -4062,7 +5340,7 @@ var KASClient;
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
-    var CustomNotificationMessage = (function () {
+    var CustomNotificationMessage = /** @class */ (function () {
         function CustomNotificationMessage() {
             // User ids to send the push notification to
             this.userIds = null;
@@ -4085,7 +5363,7 @@ var KASClient;
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
-    var KASActionPackageProperties = (function () {
+    var KASActionPackageProperties = /** @class */ (function () {
         function KASActionPackageProperties() {
             // Package id of the MiniApp, shouldn't be changed
             this.actionPackageId = "";
@@ -4111,7 +5389,7 @@ var KASClient;
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
-    var KASActionProperties = (function () {
+    var KASActionProperties = /** @class */ (function () {
         function KASActionProperties() {
             // Package id of the MiniApp, shouldn't be changed
             this.actionPackageId = "";
@@ -4157,46 +5435,7 @@ var KASClient;
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
-    var KASAttachmentViewModel = (function () {
-        function KASAttachmentViewModel() {
-            this.hasStaticContent = false;
-            this.allLocalPathsAvailable = true;
-            this.allServerPathsAvailable = false;
-            this.downloadProgress = 0;
-            this.isDownloading = false;
-            this.isAutoDownloadEnabled = false;
-            this.isOutgoing = false;
-            this.messageSendStatus = 0;
-            this.enableOnTap = true;
-            this.showRemoveButton = false;
-            this.showLoadingWhileUploads = false;
-            this.height = "180px";
-            this.width = "100%";
-        }
-        return KASAttachmentViewModel;
-    }());
-    KASClient.KASAttachmentViewModel = KASAttachmentViewModel;
-})(KASClient || (KASClient = {}));
-/// <reference path="./KASAttachmentViewModel.ts" />
-var KASClient;
-(function (KASClient) {
-    var KASAlbumViewModel = (function (_super) {
-        __extends(KASAlbumViewModel, _super);
-        function KASAlbumViewModel() {
-            var _this = _super.call(this) || this;
-            _this.imageLocalPaths = [];
-            _this.imageObjects = [];
-            _this.thumbnailBase64 = "";
-            _this.shouldBlurThumbnail = false;
-            return _this;
-        }
-        return KASAlbumViewModel;
-    }(KASClient.KASAttachmentViewModel));
-    KASClient.KASAlbumViewModel = KASAlbumViewModel;
-})(KASClient || (KASClient = {}));
-var KASClient;
-(function (KASClient) {
-    var KASAttachment = (function () {
+    var KASAttachment = /** @class */ (function () {
         function KASAttachment() {
             this.type = KASClient.KASAttachmentType.Image;
             this.fileName = "";
@@ -4261,7 +5500,7 @@ var KASClient;
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
-    var KASAttachmentFactory = (function () {
+    var KASAttachmentFactory = /** @class */ (function () {
         function KASAttachmentFactory() {
         }
         KASAttachmentFactory.getObjectOfType = function (type) {
@@ -4307,7 +5546,7 @@ var KASClient;
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
-    var KASQuestionConfig = (function () {
+    var KASQuestionConfig = /** @class */ (function () {
         function KASQuestionConfig() {
             // Config to denote if a new page should start after the current question
             this.pageBreakEnabled = true;
@@ -4339,7 +5578,7 @@ var KASClient;
         AttachmentListResponseType[AttachmentListResponseType["GENERIC"] = 0] = "GENERIC";
         AttachmentListResponseType[AttachmentListResponseType["LIST_OF_IMAGES"] = 1] = "LIST_OF_IMAGES";
     })(AttachmentListResponseType = KASClient.AttachmentListResponseType || (KASClient.AttachmentListResponseType = {}));
-    var KASAttachmentListQuestionConfig = (function (_super) {
+    var KASAttachmentListQuestionConfig = /** @class */ (function (_super) {
         __extends(KASAttachmentListQuestionConfig, _super);
         function KASAttachmentListQuestionConfig() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
@@ -4381,6 +5620,74 @@ var KASClient;
     }(KASClient.KASQuestionConfig));
     KASClient.KASAttachmentListQuestionConfig = KASAttachmentListQuestionConfig;
 })(KASClient || (KASClient = {}));
+var KASClient;
+(function (KASClient) {
+    var KASQuestionResult = /** @class */ (function () {
+        function KASQuestionResult() {
+            // Title of the question
+            this.questionTitle = "";
+            // Type of the question
+            this.questionType = KASClient.KASQuestionType.None;
+            // Index of the question
+            this.questionId = 0;
+        }
+        KASQuestionResult.fromJSON = function (object) {
+            if (object == null) {
+                return null;
+            }
+            var questionResult = new KASQuestionResult();
+            if (object.hasOwnProperty("QuestionText")) {
+                questionResult.questionTitle = object["QuestionText"];
+            }
+            if (object.hasOwnProperty("Type")) {
+                questionResult.questionType = object["Type"];
+            }
+            if (object.hasOwnProperty("QuestionId")) {
+                questionResult.questionId = object["QuestionId"];
+            }
+            return questionResult;
+        };
+        return KASQuestionResult;
+    }());
+    KASClient.KASQuestionResult = KASQuestionResult;
+})(KASClient || (KASClient = {}));
+/// <reference path="./KASQuestionResult.ts" />
+var KASClient;
+(function (KASClient) {
+    /**
+     * This model contains data for every response to an Attachment List Type
+     * question.
+     */
+    var KASAttachmentListQuestionResult = /** @class */ (function (_super) {
+        __extends(KASAttachmentListQuestionResult, _super);
+        function KASAttachmentListQuestionResult() {
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            /**
+             * attachmentListType: contains the type of the attachment list response
+             */
+            _this.attachmentListType = KASClient.AttachmentListResponseType.GENERIC;
+            /**
+             * userInfo: contains instances of KASUser with details for the respondent
+             * for the particular response so that we can show the name and profile
+             * picture of the respondent.
+             */
+            _this.userInfo = [];
+            /**
+             * timeStamps: contains the response timestamps for every response.
+             */
+            _this.timeStamps = [];
+            /**
+             * attachmentsResponseJSONStrings: contains the list of attachments
+             * corresponding to every response as a JSON string which is directly
+             * available in the questionIdToAnswerMap.
+             */
+            _this.attachmentsResponseJSONStrings = [];
+            return _this;
+        }
+        return KASAttachmentListQuestionResult;
+    }(KASClient.KASQuestionResult));
+    KASClient.KASAttachmentListQuestionResult = KASAttachmentListQuestionResult;
+})(KASClient || (KASClient = {}));
 /**
  * The following enum values MUST be in sync with the AttachmentType enum representation in iOS and Android code.
  * This is vital for proper serialization and deserialization over the KAS bridge.
@@ -4398,7 +5705,7 @@ var KASClient;
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
-    var KASAudioAttachment = (function (_super) {
+    var KASAudioAttachment = /** @class */ (function (_super) {
         __extends(KASAudioAttachment, _super);
         function KASAudioAttachment() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
@@ -4431,20 +5738,20 @@ var KASClient;
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
-    var KASAudioViewModel = (function (_super) {
-        __extends(KASAudioViewModel, _super);
-        function KASAudioViewModel() {
-            var _this = _super.call(this) || this;
-            _this.audioObj = null;
-            return _this;
-        }
-        return KASAudioViewModel;
-    }(KASClient.KASAttachmentViewModel));
-    KASClient.KASAudioViewModel = KASAudioViewModel;
+    var KASAuthenticationType;
+    (function (KASAuthenticationType) {
+        // Default type
+        KASAuthenticationType[KASAuthenticationType["None"] = -1] = "None";
+        KASAuthenticationType[KASAuthenticationType["Pattern"] = 1] = "Pattern";
+        KASAuthenticationType[KASAuthenticationType["Pin"] = 2] = "Pin";
+        KASAuthenticationType[KASAuthenticationType["Password"] = 3] = "Password";
+        KASAuthenticationType[KASAuthenticationType["FingerPrint"] = 4] = "FingerPrint";
+        KASAuthenticationType[KASAuthenticationType["FaceRecognition"] = 5] = "FaceRecognition";
+    })(KASAuthenticationType = KASClient.KASAuthenticationType || (KASClient.KASAuthenticationType = {}));
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
-    var KASCountryPhoneCode = (function () {
+    var KASCountryPhoneCode = /** @class */ (function () {
         function KASCountryPhoneCode() {
         }
         KASCountryPhoneCode.getAllCountryPhoneCodes = function () {
@@ -5756,39 +7063,7 @@ var KASClient;
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
-    var KASDocumentViewModel = (function (_super) {
-        __extends(KASDocumentViewModel, _super);
-        function KASDocumentViewModel() {
-            var _this = _super.call(this) || this;
-            _this.documentObj = null;
-            return _this;
-        }
-        return KASDocumentViewModel;
-    }(KASClient.KASAttachmentViewModel));
-    KASClient.KASDocumentViewModel = KASDocumentViewModel;
-})(KASClient || (KASClient = {}));
-var KASClient;
-(function (KASClient) {
-    var KASDropDownModel = (function () {
-        function KASDropDownModel(options, selectedOptionIndexes, isSearchEnabled, isMultiSelect) {
-            if (isSearchEnabled === void 0) { isSearchEnabled = false; }
-            if (isMultiSelect === void 0) { isMultiSelect = false; }
-            this.optionsAsStrings = [];
-            this.isSearchEnabled = false;
-            this.selectedOptionIndexes = [];
-            this.isMutliSelect = false;
-            this.optionsAsStrings = options;
-            this.isSearchEnabled = isSearchEnabled;
-            this.selectedOptionIndexes = selectedOptionIndexes;
-            this.isMutliSelect = isMultiSelect;
-        }
-        return KASDropDownModel;
-    }());
-    KASClient.KASDropDownModel = KASDropDownModel;
-})(KASClient || (KASClient = {}));
-var KASClient;
-(function (KASClient) {
-    var KASForm = (function () {
+    var KASForm = /** @class */ (function () {
         function KASForm() {
             // Form id, shouldn't be changed
             this.id = "";
@@ -5808,6 +7083,8 @@ var KASClient;
             this.version = 2;
             // Who can see the summary of the form, default value is All
             this.visibility = KASClient.KASFormResultVisibility.All;
+            // Who can send reminder, default value is sender
+            this.allowSendReminder = KASClient.KASFormResultVisibility.Sender;
             // Denotes if multiple responses from a user are allowed or not, default is false
             this.isResponseAppended = false;
             // Denotes if participants' location is attached with the response or not, default is false
@@ -5840,6 +7117,7 @@ var KASClient;
             object["exp"] = this.expiry;
             object["ver"] = this.version;
             object["vis"] = this.visibility;
+            object["asr"] = this.allowSendReminder;
             object["ira"] = this.isResponseAppended;
             object["ilr"] = this.isLocationRequested;
             object["type"] = this.type;
@@ -5854,6 +7132,12 @@ var KASClient;
                 properties.push(this.properties[i].toJSON());
             }
             object["smd"] = properties;
+            if (this.notificationSpec != null) {
+                object["ns"] = JSON.parse("{}");
+                if (this.notificationSpec.hasOwnProperty("addRow")) {
+                    object["ns"]["addRow"] = (this.notificationSpec["addRow"]).toJSON();
+                }
+            }
             return object;
         };
         KASForm.prototype.toAPICompatibleJSON = function () {
@@ -5911,6 +7195,9 @@ var KASClient;
             if (object.hasOwnProperty("vis")) {
                 form.visibility = object["vis"];
             }
+            if (object.hasOwnProperty("asr")) {
+                form.allowSendReminder = object["asr"];
+            }
             if (object.hasOwnProperty("ira")) {
                 form.isResponseAppended = object["ira"];
             }
@@ -5935,7 +7222,19 @@ var KASClient;
                     form.properties.push(KASClient.KASFormProperty.fromJSON(properties[i]));
                 }
             }
+            if (object.hasOwnProperty("ns")) {
+                var notification = object["ns"];
+                if (notification.hasOwnProperty("addRow")) {
+                    KASForm.addResponseNotificationForAddRow(form, KASClient.KASFormResponseNotificationModel.fromJson(notification["addRow"]));
+                }
+            }
             return form;
+        };
+        KASForm.addResponseNotificationForAddRow = function (form, notificationSpec) {
+            if (form.notificationSpec == null) {
+                form.notificationSpec = JSON.parse("{}");
+            }
+            form.notificationSpec["addRow"] = notificationSpec;
         };
         return KASForm;
     }());
@@ -5949,7 +7248,7 @@ var KASClient;
         FormStatus[FormStatus["Closed"] = 1] = "Closed";
         FormStatus[FormStatus["Expired"] = 2] = "Expired";
     })(FormStatus = KASClient.FormStatus || (KASClient.FormStatus = {}));
-    var KASFormAggregatedSummary = (function () {
+    var KASFormAggregatedSummary = /** @class */ (function () {
         function KASFormAggregatedSummary() {
             // The id of the associated form, shouldn't be changed
             this.formId = "";
@@ -6016,6 +7315,29 @@ var KASClient;
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
+    var KASFormBatchResponseUnit = /** @class */ (function () {
+        function KASFormBatchResponseUnit() {
+            // A unique response id, required in case of updating an existing response
+            this.id = "";
+            // Current response is an edit/update to a previous one
+            this.isEdit = false;
+            // A map of question id to answer
+            // Dictionary<QuestionId: number, Answer: string>
+            this.questionToAnswerMap = {};
+        }
+        KASFormBatchResponseUnit.prototype.toJSON = function () {
+            var object = JSON.parse("{}");
+            object["rid"] = this.id;
+            object["iu"] = this.isEdit;
+            object["rse"] = this.questionToAnswerMap;
+            return object;
+        };
+        return KASFormBatchResponseUnit;
+    }());
+    KASClient.KASFormBatchResponseUnit = KASFormBatchResponseUnit;
+})(KASClient || (KASClient = {}));
+var KASClient;
+(function (KASClient) {
     var KASFormConversationType;
     (function (KASFormConversationType) {
         KASFormConversationType[KASFormConversationType["ONE_ON_ONE"] = 0] = "ONE_ON_ONE";
@@ -6026,7 +7348,7 @@ var KASClient;
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
-    var KASFormFlatSummary = (function () {
+    var KASFormFlatSummary = /** @class */ (function () {
         function KASFormFlatSummary() {
             // The id of the associated form, shouldn't be changed
             this.formId = "";
@@ -6150,7 +7472,7 @@ var KASClient;
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
-    var KASFormProcessedSummary = (function () {
+    var KASFormProcessedSummary = /** @class */ (function () {
         function KASFormProcessedSummary() {
             // How many in the conversation did not respond
             this.nonRespondersInConversation = [];
@@ -6199,7 +7521,7 @@ var KASClient;
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
-    var KASFormProperty = (function () {
+    var KASFormProperty = /** @class */ (function () {
         function KASFormProperty() {
             // Name of the metadata
             this.name = "";
@@ -6208,6 +7530,17 @@ var KASClient;
             // Value of the metadata
             this.value = "";
         }
+        KASFormProperty.prototype.getAPICompatiblePropertyType = function (type) {
+            if (type == "Array") {
+                return "StringList";
+            }
+            if (type == "Set") {
+                return "StringSet";
+            }
+            else {
+                return type;
+            }
+        };
         KASFormProperty.prototype.toJSON = function () {
             if (KASClient.isRenderedForWebClient()) {
                 return this.toAPICompatibleJSON();
@@ -6226,7 +7559,7 @@ var KASClient;
         KASFormProperty.prototype.toAPICompatibleJSON = function () {
             var object = JSON.parse('{}');
             object["name"] = this.name;
-            object["type"] = KASClient.KASFormPropertyType[this.type];
+            object["type"] = this.getAPICompatiblePropertyType(KASClient.KASFormPropertyType[this.type]);
             object["value"] = this.value;
             return object;
         };
@@ -6252,7 +7585,7 @@ var KASClient;
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
-    var KASFormPropertyFactory = (function () {
+    var KASFormPropertyFactory = /** @class */ (function () {
         function KASFormPropertyFactory() {
         }
         KASFormPropertyFactory.getAttachmentListProperty = function (selectedAttachments, name) {
@@ -6291,7 +7624,7 @@ var KASClient;
 var KASClient;
 (function (KASClient) {
     /* THIS FILE SHOULD BE SIMILAR TO Apps/React/React/Storage/datamodels/Survey/SurveyMetadataUpdateFactory.m */
-    var KASFormPropertyUpdateFactory = (function () {
+    var KASFormPropertyUpdateFactory = /** @class */ (function () {
         function KASFormPropertyUpdateFactory() {
         }
         KASFormPropertyUpdateFactory.updateValueInProperty = function (newValue, property) {
@@ -6357,7 +7690,7 @@ var KASClient;
 var KASClient;
 (function (KASClient) {
     /* THIS FILE SHOULD BE SIMILAR TO Apps/React/React/Storage/datamodels/Survey/SurveyMetadataUpdateInfo.m */
-    var KASFormPropertyUpdateInfo = (function () {
+    var KASFormPropertyUpdateInfo = /** @class */ (function () {
         function KASFormPropertyUpdateInfo() {
             // Name of the metadata
             this.name = "";
@@ -6401,7 +7734,7 @@ var KASClient;
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
-    var KASFormReaction = (function () {
+    var KASFormReaction = /** @class */ (function () {
         function KASFormReaction() {
             // Number of likes received for the form
             this.likesCount = 0;
@@ -6457,7 +7790,7 @@ var KASClient;
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
-    var KASFormResponse = (function () {
+    var KASFormResponse = /** @class */ (function () {
         function KASFormResponse() {
             // A unique response id, required in case of updating an existing response
             this.id = "";
@@ -6500,6 +7833,62 @@ var KASClient;
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
+    var KASFormResponseNotificationTarget;
+    (function (KASFormResponseNotificationTarget) {
+        KASFormResponseNotificationTarget[KASFormResponseNotificationTarget["CREATOR"] = 1] = "CREATOR";
+        KASFormResponseNotificationTarget[KASFormResponseNotificationTarget["OWNERS"] = 2] = "OWNERS";
+        KASFormResponseNotificationTarget[KASFormResponseNotificationTarget["GROUP"] = 3] = "GROUP";
+    })(KASFormResponseNotificationTarget = KASClient.KASFormResponseNotificationTarget || (KASClient.KASFormResponseNotificationTarget = {}));
+    var KASFormResponseNotificationModel = /** @class */ (function () {
+        function KASFormResponseNotificationModel(messageTarget, pushTarget, messagePreview) {
+            if (messageTarget === void 0) { messageTarget = null; }
+            if (pushTarget === void 0) { pushTarget = null; }
+            if (messagePreview === void 0) { messagePreview = null; }
+            this.messagePreview = "";
+            this.messageTarget = messageTarget;
+            this.pushTarget = pushTarget;
+            this.messagePreview = messagePreview;
+        }
+        KASFormResponseNotificationModel.fromJson = function (object) {
+            if (object == null)
+                return null;
+            var notificationModel = new KASFormResponseNotificationModel();
+            if (object.hasOwnProperty("mt")) {
+                notificationModel.messageTarget = object["mt"];
+            }
+            if (object.hasOwnProperty("pt")) {
+                notificationModel.pushTarget = object["pt"];
+                if (object.hasOwnProperty("mp")) {
+                    notificationModel.messagePreview = object["mp"];
+                }
+                else {
+                    notificationModel.messagePreview = "";
+                }
+            }
+            return notificationModel;
+        };
+        KASFormResponseNotificationModel.prototype.toJSON = function () {
+            if (this.messageTarget == null)
+                return null;
+            var object = JSON.parse("{}");
+            object["mt"] = this.messageTarget;
+            if (this.pushTarget != null) {
+                object["pt"] = this.pushTarget;
+                if (this.messagePreview == null) {
+                    object["mp"] = "";
+                }
+                else {
+                    object["mp"] = this.messagePreview;
+                }
+            }
+            return object;
+        };
+        return KASFormResponseNotificationModel;
+    }());
+    KASClient.KASFormResponseNotificationModel = KASFormResponseNotificationModel;
+})(KASClient || (KASClient = {}));
+var KASClient;
+(function (KASClient) {
     var KASFormResultVisibility;
     (function (KASFormResultVisibility) {
         // Form summary is visible to everyone in the conversation
@@ -6508,11 +7897,66 @@ var KASClient;
         KASFormResultVisibility[KASFormResultVisibility["Sender"] = 1] = "Sender";
         // Summary is visible to all the admins of the conversation
         KASFormResultVisibility[KASFormResultVisibility["Admin"] = 2] = "Admin";
+        // Summary is visible to all the member and subscribers of the conversation
+        KASFormResultVisibility[KASFormResultVisibility["MembersAndSubscribers"] = 3] = "MembersAndSubscribers";
     })(KASFormResultVisibility = KASClient.KASFormResultVisibility || (KASClient.KASFormResultVisibility = {}));
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
-    var KASImageAttachment = (function (_super) {
+    var KASFormUserCapabilities = /** @class */ (function () {
+        function KASFormUserCapabilities() {
+            this.canSendReminder = false;
+            this.canRespond = false;
+            this.shouldSeeSummary = false;
+        }
+        KASFormUserCapabilities.prototype.toJSON = function () {
+            if (KASClient.isRenderedForWebClient()) {
+                return this.toAPICompatibleJSON();
+            }
+            else {
+                return this.toClientJSON();
+            }
+        };
+        KASFormUserCapabilities.prototype.toClientJSON = function () {
+            var object = JSON.parse("{}");
+            object["ShoudSeeSummary"] = this.shouldSeeSummary;
+            object["CanRespondToSurvey"] = this.canRespond;
+            object["CanSendReminder"] = this.canSendReminder;
+            return object;
+        };
+        KASFormUserCapabilities.prototype.toAPICompatibleJSON = function () {
+            var actionBody = JSON.parse("{}");
+            actionBody["ShoudSeeSummary"] = this.shouldSeeSummary;
+            actionBody["CanRespondToSurvey"] = this.canRespond;
+            actionBody["CanSendReminder"] = this.canSendReminder;
+            var object = JSON.parse("{}");
+            object["actionBody"] = actionBody;
+            return object;
+        };
+        KASFormUserCapabilities.fromJSON = function (object) {
+            if (object == null) {
+                return null;
+            }
+            var permissions = new KASFormUserCapabilities();
+            permissions.json = object; // Required for debugging
+            if (object.hasOwnProperty("ShoudSeeSummary")) {
+                permissions.shouldSeeSummary = object["ShoudSeeSummary"];
+            }
+            if (object.hasOwnProperty("CanSendReminder")) {
+                permissions.canSendReminder = object["CanSendReminder"];
+            }
+            if (object.hasOwnProperty("CanRespondToSurvey")) {
+                permissions.canRespond = object["CanRespondToSurvey"];
+            }
+            return permissions;
+        };
+        return KASFormUserCapabilities;
+    }());
+    KASClient.KASFormUserCapabilities = KASFormUserCapabilities;
+})(KASClient || (KASClient = {}));
+var KASClient;
+(function (KASClient) {
+    var KASImageAttachment = /** @class */ (function (_super) {
         __extends(KASImageAttachment, _super);
         function KASImageAttachment() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
@@ -6580,7 +8024,7 @@ var KASClient;
         // Only Camera will be shown in picker, by default back camera will launch
         ImagePickerSource[ImagePickerSource["CameraBack"] = 2] = "CameraBack";
     })(ImagePickerSource = KASClient.ImagePickerSource || (KASClient.ImagePickerSource = {}));
-    var KASImageQuestionConfig = (function (_super) {
+    var KASImageQuestionConfig = /** @class */ (function (_super) {
         __extends(KASImageQuestionConfig, _super);
         function KASImageQuestionConfig() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
@@ -6612,7 +8056,7 @@ var KASClient;
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
-    var KASLocation = (function () {
+    var KASLocation = /** @class */ (function () {
         function KASLocation() {
             // Latitude of the location
             this.latitude = 0;
@@ -6656,39 +8100,52 @@ var KASClient;
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
-    var KASQuestionResult = (function () {
-        function KASQuestionResult() {
-            // Title of the question
-            this.questionTitle = "";
-            // Type of the question
-            this.questionType = KASClient.KASQuestionType.None;
-            // Index of the question
-            this.questionId = 0;
+    var UrlType;
+    (function (UrlType) {
+        UrlType[UrlType["Current"] = 0] = "Current";
+        UrlType[UrlType["Fixed"] = 1] = "Fixed"; // A fixed url value will be shared irrespective of current window.location
+    })(UrlType = KASClient.UrlType || (KASClient.UrlType = {}));
+    var UrlAction;
+    (function (UrlAction) {
+        UrlAction[UrlAction["None"] = 0] = "None";
+        UrlAction[UrlAction["Share"] = 1] = "Share";
+        UrlAction[UrlAction["OpenInBrowser"] = 2] = "OpenInBrowser"; // 'Open in Browser' option will be available in toolbar actions
+    })(UrlAction = KASClient.UrlAction || (KASClient.UrlAction = {}));
+    var KASNativeToolbarProperties = /** @class */ (function () {
+        function KASNativeToolbarProperties() {
+            this.icon = null;
+            this.title = null;
+            this.subtitle = null;
+            this.fixedUrl = null;
+            this.urlType = UrlType.Current;
+            this.urlAction = UrlAction.None;
         }
-        KASQuestionResult.fromJSON = function (object) {
-            if (object == null) {
-                return null;
+        KASNativeToolbarProperties.prototype.toJSON = function () {
+            var object = JSON.parse("{}");
+            if (this.icon) {
+                object["icon"] = this.icon;
             }
-            var questionResult = new KASQuestionResult();
-            if (object.hasOwnProperty("QuestionText")) {
-                questionResult.questionTitle = object["QuestionText"];
+            if (this.title) {
+                object["title"] = this.title;
             }
-            if (object.hasOwnProperty("Type")) {
-                questionResult.questionType = object["Type"];
+            if (this.subtitle) {
+                object["subtitle"] = this.subtitle;
             }
-            if (object.hasOwnProperty("QuestionId")) {
-                questionResult.questionId = object["QuestionId"];
+            if (this.fixedUrl) {
+                object["fixedUrl"] = this.fixedUrl;
             }
-            return questionResult;
+            object["urlType"] = this.urlType;
+            object["urlAction"] = this.urlAction;
+            return object;
         };
-        return KASQuestionResult;
+        return KASNativeToolbarProperties;
     }());
-    KASClient.KASQuestionResult = KASQuestionResult;
+    KASClient.KASNativeToolbarProperties = KASNativeToolbarProperties;
 })(KASClient || (KASClient = {}));
 /// <reference path="./KASQuestionResult.ts" />
 var KASClient;
 (function (KASClient) {
-    var KASNumericQuestionResult = (function (_super) {
+    var KASNumericQuestionResult = /** @class */ (function (_super) {
         __extends(KASNumericQuestionResult, _super);
         function KASNumericQuestionResult() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
@@ -6720,7 +8177,7 @@ var KASClient;
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
-    var KASO365User = (function () {
+    var KASO365User = /** @class */ (function () {
         function KASO365User() {
             this.displayName = "";
             this.givenName = "";
@@ -6765,7 +8222,7 @@ var KASClient;
 /// <reference path="./KASQuestionResult.ts" />
 var KASClient;
 (function (KASClient) {
-    var KASOptionQuestionResult = (function (_super) {
+    var KASOptionQuestionResult = /** @class */ (function (_super) {
         __extends(KASOptionQuestionResult, _super);
         function KASOptionQuestionResult() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
@@ -6815,7 +8272,7 @@ var KASClient;
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
-    var KASOptionResult = (function () {
+    var KASOptionResult = /** @class */ (function () {
         function KASOptionResult() {
             // Title of the option
             this.optionTitle = "";
@@ -6863,7 +8320,7 @@ var KASClient;
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
-    var KASPhoneNumber = (function () {
+    var KASPhoneNumber = /** @class */ (function () {
         function KASPhoneNumber(countryPhoneCode, phoneNumber) {
             if (countryPhoneCode === void 0) { countryPhoneCode = 0; }
             if (phoneNumber === void 0) { phoneNumber = ""; }
@@ -6900,7 +8357,7 @@ var KASClient;
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
-    var KASQuestion = (function () {
+    var KASQuestion = /** @class */ (function () {
         function KASQuestion() {
             // Index of the question, starts with 0
             this.id = 0;
@@ -6918,8 +8375,14 @@ var KASClient;
             this.isEditable = true;
             // Denotes if the question will be skipped from all sorts of reporting
             this.isExcludedFromReporting = false;
+            // Denotes if it's mandatory to respond to this question
+            this.isResponseOptional = false;
             // List of options for the question
             this.options = [];
+            // Validation rules of a question - JSON of rule(s), error string and help string
+            this.valif = null;
+            // Visibility rules of a question - rule string
+            this.visif = null;
         }
         KASQuestion.prototype.getAPICompatibleQuestionType = function (type) {
             if (type == "SingleSelect") {
@@ -6930,6 +8393,9 @@ var KASClient;
             }
             if (type == "SingleSelectExternal") {
                 return "SingleOptionExternal";
+            }
+            if (type == "DateOnly") {
+                return "Date";
             }
             else {
                 return type;
@@ -6952,8 +8418,15 @@ var KASClient;
             object["editable"] = this.isEditable;
             object["er"] = this.isExcludedFromReporting;
             object["dt"] = this.displayType;
+            object["optl"] = this.isResponseOptional;
             if (this.config != null) {
                 object["cfg"] = JSON.stringify(this.config.toJSON());
+            }
+            if (this.valif != null) {
+                object["valif"] = JSON.stringify(this.valif.toJSON());
+            }
+            if (this.visif != null) {
+                object["visif"] = JSON.stringify(this.visif.toJSON());
             }
             if (this.options.length > 0) {
                 var questions = [];
@@ -7004,6 +8477,9 @@ var KASClient;
             if (object.hasOwnProperty("dt")) {
                 question.displayType = object["dt"];
             }
+            if (object.hasOwnProperty("optl")) {
+                question.isResponseOptional = object["optl"];
+            }
             if (object.hasOwnProperty("cfg")) {
                 var config = JSON.parse(object["cfg"]);
                 switch (question.type) {
@@ -7034,11 +8510,45 @@ var KASClient;
                     question.options.push(KASClient.KASQuestionOption.fromJSON(options[i]));
                 }
             }
+            if (object.hasOwnProperty("valif")) {
+                var valObj = JSON.parse(object["valif"]);
+                if (Object.keys(valObj).length > 0)
+                    question.valif = KASClient.KASValidationRule.fromJSON(valObj);
+            }
+            if (object.hasOwnProperty("visif")) {
+                var visObj = JSON.parse(object["visif"]);
+                if (Object.keys(visObj).length > 0)
+                    question.visif = KASClient.KASVisibilityRule.fromJSON(visObj);
+            }
             return question;
+        };
+        KASQuestion.prototype.validateResponse = function (response) {
+            var validationResponse = new KASQuestionValidationResponse();
+            if (this.valif == null || this.valif.rule == null) {
+                validationResponse.success = true;
+            }
+            else {
+                var jsonLogicRule = this.valif.rule;
+                var responseObj = JSON.parse("{}");
+                responseObj.response = response;
+                validationResponse.success = KASClient.isDataValidAgainstRule(jsonLogicRule, responseObj);
+                if (!validationResponse.success) {
+                    validationResponse.errorMsg = this.valif.errorString;
+                }
+            }
+            return validationResponse;
         };
         return KASQuestion;
     }());
     KASClient.KASQuestion = KASQuestion;
+    var KASQuestionValidationResponse = /** @class */ (function () {
+        function KASQuestionValidationResponse() {
+            this.errorMsg = null;
+            this.success = false;
+        }
+        return KASQuestionValidationResponse;
+    }());
+    KASClient.KASQuestionValidationResponse = KASQuestionValidationResponse;
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
@@ -7054,7 +8564,7 @@ var KASClient;
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
-    var KASQuestionOption = (function () {
+    var KASQuestionOption = /** @class */ (function () {
         function KASQuestionOption() {
             // Index of the option, starts with 0
             this.id = 0;
@@ -7140,7 +8650,7 @@ var KASClient;
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
-    var KASUser = (function () {
+    var KASUser = /** @class */ (function () {
         function KASUser() {
             // Unique user id
             this.id = "";
@@ -7202,7 +8712,65 @@ var KASClient;
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
-    var KASVideoAttachment = (function (_super) {
+    var KASValidationRule = /** @class */ (function () {
+        function KASValidationRule() {
+            //sample json - { "rule" : {">" : [2, {"var" : "response"}, 100]},
+            // "errMsg" : "<error to display>",
+            // "helpTxt" : "<ghost text for the response>",
+            // "minValue" : 2
+            // "minValue" : 100 }
+            //Validation rule definition
+            this.rule = {};
+            // String to display in case of invalid input - mostly string identifier(optional)
+            this.errorString = null;
+            // Help text to display(optional)
+            this.helpText = null;
+            // contains all other attributes like minValue, maxValue, allowOnlyIntegers
+            this.attributes = {};
+        }
+        KASValidationRule.fromJSON = function (object) {
+            if (object == null) {
+                return null;
+            }
+            var validationObj = new KASValidationRule();
+            if (object.hasOwnProperty("rule")) {
+                validationObj.rule = JSON.parse(JSON.stringify(object["rule"]).replace(/&lt;/g, '<').replace(/&gt;/g, '>'));
+            }
+            if (object.hasOwnProperty("errMsg")) {
+                validationObj.errorString = object["errMsg"];
+            }
+            if (object.hasOwnProperty("helpText")) {
+                validationObj.helpText = object["helpText"];
+            }
+            if (object.hasOwnProperty("minValue")) {
+                validationObj.attributes.minValue = object["minValue"];
+            }
+            if (object.hasOwnProperty("maxValue")) {
+                validationObj.attributes.maxValue = object["maxValue"];
+            }
+            if (object.hasOwnProperty("allowOnlyIntegers")) {
+                validationObj.attributes.allowOnlyIntegers = object["allowOnlyIntegers"];
+            }
+            return validationObj;
+        };
+        KASValidationRule.prototype.toJSON = function () {
+            var object = JSON.parse("{}");
+            object["rule"] = this.rule;
+            if (this.errorString)
+                object["errMsg"] = this.errorString;
+            if (this.helpText)
+                object["helpText"] = this.helpText;
+            var attributes = JSON.parse(this.attributes);
+            object["attributes"] = attributes;
+            return object;
+        };
+        return KASValidationRule;
+    }());
+    KASClient.KASValidationRule = KASValidationRule;
+})(KASClient || (KASClient = {}));
+var KASClient;
+(function (KASClient) {
+    var KASVideoAttachment = /** @class */ (function (_super) {
         __extends(KASVideoAttachment, _super);
         function KASVideoAttachment() {
             var _this = _super !== null && _super.apply(this, arguments) || this;
@@ -7243,22 +8811,48 @@ var KASClient;
     }(KASClient.KASAttachment));
     KASClient.KASVideoAttachment = KASVideoAttachment;
 })(KASClient || (KASClient = {}));
-/// <reference path="./KASAttachmentViewModel.ts" />
 var KASClient;
 (function (KASClient) {
-    var KASVideoViewModel = (function (_super) {
-        __extends(KASVideoViewModel, _super);
-        function KASVideoViewModel() {
-            var _this = _super.call(this) || this;
-            _this.videoLocalPath = "";
-            _this.videoStreamingPath = "";
-            _this.thumbnailBase64 = "";
-            _this.shouldBlurThumbnail = false;
-            return _this;
+    var KASVisibilityRule = /** @class */ (function () {
+        function KASVisibilityRule() {
+            //sample json - { "rule" : {"==" : [2, {"var" : "question.1"}]},
+            //    "qId" : 1,
+            //    "opId" : 2 }
+            // ==> make this question visible if Question 1's response is equal to option 2.
+            //Visibility rule definition - jsonLogic expression
+            this.rule = {};
+            // ID of the question the current question is dependent on
+            // Currently portal supports only dependency on 1 question at a time - can be extended to array of IDs in future.
+            this.dependencyQuestionId = "";
+            // Option to be selected for the question ID above to make the current question visible
+            this.optionId = "";
         }
-        return KASVideoViewModel;
-    }(KASClient.KASAttachmentViewModel));
-    KASClient.KASVideoViewModel = KASVideoViewModel;
+        KASVisibilityRule.fromJSON = function (object) {
+            if (object == null) {
+                return null;
+            }
+            var visibilityObj = new KASVisibilityRule();
+            if (object.hasOwnProperty("rule")) {
+                visibilityObj.rule = JSON.parse(JSON.stringify(object["rule"]).replace(/&lt;/g, '<').replace(/&gt;/g, '>'));
+            }
+            if (object.hasOwnProperty("qId")) {
+                visibilityObj.dependencyQuestionId = object["qId"];
+            }
+            if (object.hasOwnProperty("opId")) {
+                visibilityObj.optionId = object["opId"];
+            }
+            return visibilityObj;
+        };
+        KASVisibilityRule.prototype.toJSON = function () {
+            var object = JSON.parse("{}");
+            object["rule"] = this.rule;
+            object["qId"] = this.dependencyQuestionId;
+            object["opId"] = this.optionId;
+            return object;
+        };
+        return KASVisibilityRule;
+    }());
+    KASClient.KASVisibilityRule = KASVisibilityRule;
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
@@ -7273,7 +8867,7 @@ var KASClient;
 (function (KASClient) {
     var UI;
     (function (UI) {
-        var Assets = (function () {
+        var Assets = /** @class */ (function () {
             function Assets() {
             }
             Assets.navigationBackiOS = "iVBORw0KGgoAAAANSUhEUgAAACcAAAA/BAMAAACRCMzwAAAAAXNSR0IArs4c6QAAABJQTFRFAAAAAKf/AKP/AKL/AKL/AKH/S2WhQAAAAAV0Uk5TACBAwOB5MxF5AAAAU0lEQVQ4y2NgQAXCAgwYgNHVEVNQJDREAFNhaKgjpsJQDKUghRhKQQrRBSEK0bSPKhyWChlMwYIKhFMFdjNHlY5ApY5ElDbYyyWsJRj2sg5SKgIAZD9xjxU9CiMAAAAASUVORK5CYII=";
@@ -7284,7 +8878,7 @@ var KASClient;
             Assets.mycomment = "iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAA4NJREFUeAHtWztvE0EQntnYPJQICYkCIUIHjQV2h6ipQGlIAQ0FUiANtDxDFxr4BYCSDokCUSKqFFRUKDQWEuIVsIA8kEOwCXHOPmb8uLuNze3ZnHO759si3pf35vtmZmfOmiA0m23bmLrz+iIATtgAGQB7pLUWj08sIUCecM1at3MziEgwCS3/Gb6X3/+nsvmISDjJ47g3Aj+3a0f6fPla5rtgzQ8SeFYuK7qJGXFoev4S2cLDuGu9Ez4y/8kU+zxx4q7v3gP23lGwU2l3LgY9tDYBi18A1tc8aHBCNC48dy6O4BkdK5SxeRtjF7Qk3fZx07wEuM2q7REiYLBbQsBg6x8gsYDEAgacgYF3AcoE/dupA5QnnwA4OOy/T7fVQpny3JcAz7/6S6a0ABPBM2RWGMuuakoCVAeYvq4kgM2Izcm01nIBldzKO4B9aPSp6hhz15UWYC60YJInBATjKb67EguIr26DIUssIBhP8d2lzAP6/S7QSlhUOXu/VKB0gX6/CwTN2SMjoF8P1uVcpQX0+12g5QJREaK8A5J3gahUs03PVbrANskR2WMSAiKjXpMHJxagiSIiEyOxgMio1+TBiQVooojIxEgsgKrESl76uZoqrq0dG5ZEo3zUhcylZO0b3XVTe06ZnAcAY6e3QXuW5o4781RHh+v5Rg2tM+l2aody7sCnh+VVwB8LtMNTg+izP5IlgTOiWTg8F6YAuFEm8J+1Bs/1wtatY7OCq6a5cJgnwiABrQ3A5Y90VC2M4/pyRqtYmrGTGzRa0HJ5PxfAqgW4+BbAqrSO1ejTp1zeT0oxPS858b8IQLtG4N8BVH7Lxwm8UZvK3ZUn9RmFkgewGeEKXXhbwKPABzqDZzWEQ0CxQFXYPyW1kn89Gz+cvSxNajj4bwJwbQng14oEDQFf7duJ556cxaq0oOFA+auwn8z1WL/6Td6C+Imiytji1YwRhTU9W0DHWI9YTKWHTvP/4sis6DvqiYDOsR4rQogzletH3+gLt12yrl2gHuuX3lOeY7mn1RMKvECZ1Qt30oxe9wQsf2hPdBBuVqeyj82ALEvZvQtsjfWI93WP9TJkedQ9AZ7v12P9kewVz5Rx3Z4JMCnW+2ml6zugfphhsT5cAlCUUmlhVKz3IyCAC2DBOQCFLQSOmRbrHfk7dJQEoBCT9K5XoN/IFlCkx02M9R1wO1N/AdbeDi2ziqzrAAAAAElFTkSuQmCC";
             Assets.editImage = "iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAbtJREFUSA21lU1OAkEQhV8Pmrj25xaCegVw58KdJgr+nMAVLryAMe5dGBMDKIkcwSBnULwCO4GVG6NYvtK0TM8I0zLaSaemuqe+V11T6QH+YogYVOUEFelwlsNIE3YmehYJUMUFY/e/4w2OsWOO1E8vUJVLCPa+4fYhwClK5nDK+hNbg1vGliiScRjvKLNsz+lPoNSabFDgmtNN2KATOKqTOiXTYOgm52sEcRbxPdyKrLBTmmjIbOztiqyzLC/cF9pz3f9dia5lGW+4Y5zC7zlXsWt6tMNRkzWWqogZzg0z8Bdw4RbYxjQK2DJduxC1ft9A4QM0GRwtS44naqEu81Gw9ZMFarL0CRfM2SDHCrIUuXHWQs54AYULaz4K/gV6ojkIMZ3H0d/AB27QRYA8iubRoYacn09Ql1xi5h5w1YkLKFxbcVxZPOEq4JboSrJ4Z1cIRnYFI7q8ELQ12wpIGkMBP3iP8LwvXMW/SuQLN/6Z25Ppn2iRJWlxYcEuxqxBj6Up8H5/iO0lLAT/CVdtvb/HZ57hhbb9+8ztweJtaneAPv9RCtdbc+IxSqD/2Yop4ZrVTwJ9rqfO3B75A7THlDrp4UmvAAAAAElFTkSuQmCC";
             Assets.chevron = "iVBORw0KGgoAAAANSUhEUgAAABgAAAAkCAYAAACTz/ouAAAAAXNSR0IArs4c6QAAAVRJREFUSA21109qwkAUBvAkSnGhiyx6AekNFIorRbxQl93NzqX36B0KWXoIEXqBLoq40sR8wRma+EzmvXkZkJA3me/nnzi8RBExPsz2DS9iil0aNFfcg6dlPV2sNvE++/5tXsM5rwH/wm1GMOIAIlwFSZBijBkOkuGrTSSOU+lvEtswY75eTsnP7JpfJrZGHI8783kg6k9LDsAVfSA1oA/kAdBGSEATeQpoIa2ABtIJhCJeQAjiDUgRFiBB2AAXEQEcpNpNsUAy8vza+QY7L6BgbIp/0XFeRMWYmr/Xqp2XDXDCAbEAbjgLkIR7A9JwLyAkvBMIDW8FNMIBkH80hKPD8LnPEdI2Hm5TG67VvtQA7XB8Mgf0EQ6g6k3ROp6S81zra0GwHRWQZVn+vlyPymJqJxpHdsto17vuGs8BeB4gEHE4EAfghECCwpFJDrTq0na9GXgDuCcssrft97EAAAAASUVORK5CYII=";
-            Assets.emptyState = "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NkEAAQQQQAABBBBInQAFaOosaQkBBBBAAAEEEEAgCQEK0CSQ2AQBBBBAAAEEEEAgdQIUoKmzpCUEEEAAAQQQQACBJAQoQJNAYhMEEEAAAQQQQACB1AlQgKbOkpYQQAABBBBAAAEEkhCgAE0CiU0QQAABBBBAAAEEUidAAZo6S1pCAAEEEEAAAQQQSEKAAjQJJDZBAAEEEEAAAQQQSJ0ABWjqLGkJAQQQQAABBBBAIAkBCtAkkNgEAQQQQAABBBBAIHUCFKCps6QlBBBAAAEEEEAAgSQEKECTQGITBBBAAAEEEEAAgdQJUICmzpKWEEAAAQQQQAABBJIQCCexDZsggAACCCCAAALBEgjJQonKRSlPqmbLN0yb+8fardm0QJS8EltWUp/yvnzcoPJx7ISOAAIIIIAAAggkL3DG73TyG6diS+dM+ePZd6SipaC1wSn4oI0o+SCAAAIIIIAAAh4XoAD1+AARHgIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggEAABVQAcyIlPwgs0PlSJ0eYUA8VJXuIlnHmvdR87meWc7pMQcm1Mkv9T5ff7+iL+foS0/Yvd7RJl9/Rb5c0232B83YkXa7g96pLmu2+8NvvlZIGk8OV5u/VNdvlwgoEEJAwBghkXEBrR+bLR6bfYbG+dUsE8feMB0SHCCCAQIoFmv8hbYtQXggg0ImA08k6ViGQXgGlXHO08/n0dkLrCCCAQJ8LbO3zCAgAAY8KcAreowMT+LDu1seJKxeJIy+ZXO3PClOUlpuT7+UyU9UFPn8SRACBYAss0KFYgjNVNNiJkh0CCCCAAAIIIIAAAggggAACCCCAAAIIINAtgXv1uG5tz8YI+FCAa0B9OGiEjAACCCAQUIF5+nJpkndknp4d0AxJC4GYANeA8ouAAAIIIICAFwTu1kebqeIeNz/x/zZ/W2areV4IjRgQSLUAR0BTLUp7CCCAAAII9EQgV14xu73dZtfbzJHQA9t8ZhGBwAjE/5UVmIRIpA8EHtcFcqyqTXnPdr7Qu6RYIlJkjgjkSVRyzXGBkJm91jGnqPjdTTk4DSKAQEYFwuYvW5OZD0Sbv24hqTd/1bbF/sI1yEMmjqmxWJR8av4GTpeT1OqMxkZnCKRZgP+Ipxk48M0/r8OySv5j8vzQPMfobPmqqupVzs3tlZgis8Q8R6TYlJr8jvYKlJ0RQMB3Ao75R7cr95m4d43FrmSRjJD95VDV5LtcCBiBLgQ4Bd8FDKuTFPhEzjBb2n+pnyQVZj5Pe9SyJy87Z97deqh8IhPN7iPNUYESis+eQLIPAgj4XsCVavNP7x+bPBpjuWiZYv42nun7vEgAgTYCPSsW2jTAYhYLzNeF5tTRlW0EHhT7lKPuvLRWcp8eaI527mX+xb+L+eF3sjt+bIsAAsEU0PKu+Wt4cyI5V34m8/VI8498zgolUFjwswD/sffz6PV17FouNAXo0JYw3jdXaV7TrZAW6Bxzjece5t/4I8wVUOFu7cvGCCCAQNAForHT8Cta0hxo3n8U+5tp/3byQsDnAhSgPh/APgt/gR5g+r440X/IFKMzVUPi884W7NHTBlN8OpK/s035HgEEEMhKARU7J3RrIncts8xNSkNifzvt31BeCPhYgALUx4PXp6Fvk6+Y/vvFYlDmBqRT5Omk47HFa0jGcdQzaTE2RACBbBVw5TmT+vst6Reaa0NnxP522r+h83RZtrKQt/8FKED9P4Z9lcFxiY6V3Gqu/dSJzztasMVnnYxiGqUdIfEdAggg0E7gscQnbQpQ+2qeim4kRWhMg//xoQAFqA8Hrc9DXqDzzbWfX4zFocyfwVxzVVIyL3vKqNHc4c4LAQQQQCB5geajoPEbPA8wJ+ZzEzuHzTX0nI5PcLDgHwEKUP+MlXcirY8VnwWxgLSZn26mqthpcPaieUfGcORzp1JsgAACCLQXcGSTOfX+D/PzrPnH/2/MxPShxAb2SKj928qNSQkSFvwhwJ3H/hgnb0XpyhfaBPRCm+XOF+20IXeZP5AOd7p3DsRaBBBAYCcCWi5JbBFNLDUv2FlEaszfWK0/SPpyqA5N8BGBTAtwBDTT4kHoT5m711tf/25d7GLpz1LG3e5d2LAaAQQQSIWAnVHE/q3lhYBPBChAfTJQngpTm7sv4y9Hdvx8YvuEo/rEXKHxvXhHAAEEEEi1gGv+1tq/ubwQ8IEABagPBslzISrz1Pf4S5trk3b0qpfBnHrfERDfIYAAAikSsKfi7d9cXgj4QIAC1AeD5MEQm+f/tIH130EB+ry21xjzx9CDA0hICCAQWIHB0vy3N7AJklgwBChAgzGOmc1CS+tj4I5VtV12vkpKeLZ7lzp8gQACCKRewDXnnOzfXl4IeFyAAtTjA+Tr8ML8EfT1+BE8Agj4U4C/vf4ctyyLmgI0ywY8Y+lq7ZjnFRdnrD86QgABBBBoFrB/e+3fYF4IeFiAX1APD46vQ3vQPCfeMRMk80IAAQQQyKyA/dt7FwcAMotOb90VYCL67oqxfXICDaYA5YUAAggg0DcCESkyHW/ti84f/U/VXlo1fkaUHhbrX6u1SkfeOu6Afkv6Ih769KYABag3x8XbUSlZsdMAteTtdBs2QAABBBBIj0CG/wY/tVTn1m/ZfK646ruuNOxuHhkqsZ9YdtosNsgj/9n8kTj697n9B9xy1DhVn57EadUvApwi9ctI+S3Ou/REcxKo9W55v8VPvAgggICfBWzF9221OBMpPPpaxf5uU/QBU3GOSq4/9bETDp143LSS/ya3PVsFUYBrQIM4ql7ISQlP4/DCOBADAghkp0CG/gY/+p+tJ+ho9J/tik+lKszRrb8oca5r/pG/mGfUV7QOhB5l97H7tq5jKdsEOAWfbSOeqXzD5hakpkx1Rj8IIIAAAu0E7N/gNL/skU9TSN6jtc61XSmlNpnC87JdQ/3/NG2aamzb/Wuv6cgn0S2nmzPzV5ntB8b2Ue49po3VHAltK5U9y5yCz56xzmym8/TkzHZIbwgggEDABZQsTGSoZUZiuauF2eqNrr7q7Xp7zee28i0fxI98KiVLwiF15LHTBqzaUdtPLtoyqqHRfUpr2at5O/VxXln/PbgmdEdqwfwu7f9CCiYbWSGAAAIIIJBhAW3n92z5yXDXHbuL3XDUcs2nPfKZTPFp2zh6Sv+P7bZ2n+Y29ajmtjr2wOegC1CABn2EyQ8BBBBAAIFUC5i73eNN2tPuOzvyGd/Wvttt7T6JdW3aSqxjIfACFKCBH2ISRAABBBBAIHUCsXk+Re8ea9HcXGSv+exu67F9Wm5MMpM07W7b7G4bbO9vAQpQf48f0SOAAAIIIJBRgdgk8y09Kq2f63jDUTLB2H3svvFt27YZX8d7sAUoQIM9vmSHAAIIIIBAagXiTziKters/MEkXfbeZt92bXa5A18ESIACNECDSSoIIIAAAgj4RkCZx5XwyloBCtCsHXoSRwABBBBAoAcC5tnurXu5u7Uud3NJu6MTe7RrM7GWhQALUIAGeHBJDQEEEEAAgVQLKB15K96mVuowO8l8/HOy73Yfu298+7ZtxtfxHmwBCtBgjy/ZIYAAAgggkFKB4w7ot8ScPf8o1qjWJfYJR93tILaP2dfuZ9uybXa3Dbb3twAFqL/Hj+gRQAABBBDIvICjfx/v1D5e8/HXNo+Mf97Zu93W7pPYrk1biXUsBF6AAjTwQ5yGBOfr3ST+k4bmaRIBBBBAwNsCuf0H3GKOXX5so7TPdm+K6r8mU4Tabey2dp/mDNXHzW15O1+iS70ABWjqTYPfopbl5nFwzT/Bz5YMEUAAAQQ6CNhntzvh0InmkZr19iv7bPemqLz+6H83n93ZNaF2nf3ObhN/Drzd17bBc+A74GbJR6ZAyJKBTmma88yfj/hrtur8d2ienhzfhHcEEEAAgZQILGrTypQ2y50vzlZvdP5F6tY++p+tJ2jl3mOOaOYmWjVPOGqeZD4+z6e7W+yGo5ZrPu12tvhU2vnWcQeUPpTYj4WsEghnVbYkiwACCCCAAAIpE7AF5KOvVazWTdEHzHHQUbGGTaFpjlJ8XcRt7afNcQt76l6FQiceN63kv60bsJRtAhSg2Tbi5CsFjqhfTJEJUwbK+KH5MqokIqMLwzLMUVIUduzXUmiZzJ/OmiZXal0t1TVNsraiUVauq5OPF22SDy9dJO/XuuZCBJ+99CxpewTFZ9H7P1w1X3Z+1Mr/aZJBugS0HJJouvNzT4mvM7lgC8mnluo96rdsPldc9V37bPfO+o/dOW9uOMrt3/8WTrt3JpRd6wJdgD7zdtUhWrszvDikSjkLj5jU759ejC2IMc0eLYPO3UsOG10k+/XPkakhR/rtLM+QSGkoJKV2u/ywjB+YJzLW7PW5wSLnTJCqLQ3y+spqeeWWJfLcvJWycWft8T0CCCDQKwElVb3aP407txSU15kurnv0P1V7xZ7tHn+8pplk3s7zyVRLaRwAHzYd6ALUFp/a1XM9OS6Oa+OiAE3j4IwrkZzb9pPD9i2TY0zRub/pKmU33dkC1hSkM+zPXQfLRTccIP99s1yeOPsVeW5phTSkMS2aRgABBDwt0FJoMq+np0ep74MLdAHa97xE0BcC08sk/w8HygkTS+VUc0q9ZaqPtEbimAL3wEOHyoFLjpUfLN4qd5/5sjz0arnUpbVXGkcAAQQQQMCnAoEuQO1pbmk+0ui54YnF5rmo/B3QwBwJPXOEnDSpv5weUs2nzjOdkS14PzNAfvDyUXLa21vkT0c8I3/e1CDRTMdBfwgggAACCHhZINAFaMs1lpzm9vJvYIpi+9OBsu83d5NLzbWa41LUZK+asQXw5AFy4aoT5Nj7V8gvTn9Z3uxVg+yMAAIIIIBAgARSdk1cgExIxUcCI4okvPJ4ufi0cfJHrxSfbflsTDY2G6ONte13LCOAAAIIIJCtAhSg2TryAcj7wgky/L2vyF2jCuUkk46HJiXZDlfZGG2sNubtvmUFAggggAACWSZAAZplAx6UdO89SKb/arrcZ+bv3MsvOdlYbcw2dr/ETJwIIIAAAgikQ4ACNB2qtJlWgb8dLoefNEZuMRPH73Quz7QG0oPGbcw2dptDD3ZnFwQQQAABBAIhQAEaiGHMniRe+rJ87Yhhco15An3Er1nb2G0ONhe/5kDcCCCAAAII9EaAArQ3etm6r5IV5orL5p8MGtijhgcOlp+YLoPwe+vYXDgSmsFfILpCAAEEEPCMAHflemYofBTILDUm09Ha6ya/OFSuNv0GofiM8zk2J5NbxSkvyqvxlbwjgAACCCAQdIEg/cc86GOVtfnZO8e/OUZ+7efT7l0Nns3J5sbd8V0JsR4BBBBAIIgCFKBBHNUA5WTnzvzZFPmlH284SnYYbG42R+YJTVaM7RBAAAEE/C5AAer3EQx4/P/6kvzAT1Mt9XQ4bI42157uz34IIJAFAkoWmuvvm3+yIF1SDLYABWiwx9fX2dnHa5oJ3L/p6yS6EbzN1ebcjV3YFAEEsklAS7HEf7Ipb3INpAAFaCCH1f9JDcyRkH22u8nEy084SjW0sjnb3FPdMO0hgAACCCDgJQEKUC+NBrEkBJ45Qk7y4rPdEwGmacHmbHNPU/M0iwACCCCAgCcEKEA9MQwE0VZgepnkT+ovp7ddl03LNndrkE05kysCCCCAQHYJUIBm13j7Its/HCgnhJSU+iLYNARpc7cGaWiaJhFAAAEEEPCEAAWoJ4aBIOIC40okZ2KpnBr/nK3v1sBaZGv+5I0AAgggEGwBCtBgj6/vsrttPzks7MhA3wWe4oCtgbVIcbM0hwACCCCAgCcEKEA9MQwEERfYt0yOiS9n+zsW2f4bQP4IIIBAcAUoQIM7tr7LbPZoGdQ/R/b3XeBpCthaWJM0NU+zCCCAAAII9JkABWif0dNxR4HzJ8ZOOfM72QrjnLsXp+FbOVhCAAEEEAiKQDgoiZBHBgXm690Svc1SKxLLvVwYVST79bKJwO0+utnk/sAlRkIIIIAAAlktQAGa1cPfw+S1LG+zZ0qeVFTgiCqNyNQ27bJoBMxp+KnWptY1D+BLwUvNlykpaIYmEEAAAQQQ6JUApzt7xcfOqRL4xRSZEHKkX6raC0o71sTaBCUf8kAAAQQQQMAKUIDye+AJgSkDZbwnAvFgENh4cFAICQEEEECgVwKcgu8VHzunSmBovoxKVVtBaweboI0o+SDQQwEthyT2TMnFT4nWWEAg4wIUoBknp8POBEoiMrqz9awTwYbfAgQQiAkoqUICgaAIcAo+KCPp8zwKwzLM5ymkLXxs0kZLwwgggAACfSRAAdpH8HTbXsBRUtR+DZ/iAtjEJXhHAAEEEAiKAAVoUEbS53mYZ58X+DyFtIWPTdpoaRgBBBBAoI8EKED7CJ5u2wuYX8TC9mv4FBfAJi7BOwIIIIBAUAQoQIMykuSBAAIIIIAAAgj4RIAC1CcDFfQwXZGaoOfY0/yw6akc+yGAAAIIeFWAAtSrI5NlcTW5UptlKSedLjZJU7EhAggggIBPBChAfTJQQQ/T1VId9Bx7mh82PZVjPwQQQAABrwpQgHp1ZLIsrpomWZtlKSedLjZJU7EhAggggIBPBHgSkk8GylNhKlmR6ngqGmXlwLxUtxqM9qxNMDIhCwQQQAABBJoFKED5Tei+wCw1pvs77XiPdXXy8dh+O94mW7+1NtmaO3kjgAACCARTgFPwwRxX32W1aJN86LugMxQwNhmCphsEEEAAgYwJUIBmjJqOdiRw6SJ5P+pK1Y62ycbvrIm1ycbcyRkBBBBAILgCnIIP7tj6KrNaV/TWRnm9LFdm+CrwNAe7pUFetzap6kbPkkWpaot2EPCbgJovU/wWc7t4lSxMfNb8rUxYsOBLAY6A+nLYghn0x9XySjAz63lWKzHpOR57IhA0AS3F5p+jzT9By418sk6AAjTrhty7Cd+0WJ4z0ZkH//BqEXBvWRIzAQQBBBBAAIFACVCABmo4/Z3MvJWy0Zxy/q+/s0hd9NbCmqSuRVpCAAEEEEDAGwIUoN4YB6JoEXizXJ4Ao1kAC34TEEAAAQSCKkABGtSR9WleZ78iz5lnn2/yafgpC9saWIuUNUhDCCCAAAIIeEiAAtRDg0EoIksrpGHxVrk72y2sgbXIdgfyRwABBBAIpgAFaDDH1ddZnfmyPBTVstXXSfQieJu7NehFE+yKAAIIIICApwUoQD09PNkZ3KvlUvf2FvlTdmYvYnO3BtmaP3kjgAACCARfgAI0+GPsywyPeEb+XNckS30ZfC+Ctjnb3HvRBLsigAACCCDgeQEKUM8PUXYGuKlBovevkF+Y7FP2FCAfSGqbs83dB7ESIgIIIIAAAj0WoADtMV0W7zhf7ybxnzQynP6yvPlxjdyfxi481bTN1ebsqaAIBgEEEEAAgTQIUICmATXwTWpZbo5LNv+kOdnP/01uqGmSJWnups+btznaXPs8EAJAAAEEEEAgAwIUoBlApoueC6yulqYrFsn/uFqqet6Kt/e0udkcba7ejpToEEAAAQQQSI0ABWhqHGkljQLXvy9r7l8uF2ktjWnspk+atjnZ3GyOfRIAnSKAAAIIINAHAhSgfYBOl90XOOVFefXZdfITs6fb/b09u4drc7K5eTZCAkMAAe8IaDnEXP7U/OOdqIgEgR4JUID2iI2d+kLgS3+Xv7+8Qa42fQehCHVtLjanvrCkTwQQ8KGAMpcixX98GD4hI9BWgAK0rQbLnhf47NPyyDNr5Ud+Ph1vY7c52Fw8D06ACCCAAAIIpEGAAjQNqDSZXgF71PDPy+VcP96YZGO2sXPkM72/I7SOAAIIIOBtAQpQb48P0XUhYK+bvPhVOdlPUzTZWG3MXPPZxaCyGgEEEEAgawQoQLNmqIOXqL1zfM//k2+bCdztoyu9/MQkbWO0sXK3e/B+D8kIAQQQQKD7AhSg3TdjDw8J2LkzRz8sv7pzqZzhxWfH25hsbDZG5vn00C8OoSCAAAII9KkABWif8tN5qgTsIyxHPiQnv7FZro9q2Zqqdnvajo3BxmJj4vGaPVVkPwQQQACBoApQgAZ1ZLMwr00NEp3yhNxz4FNy9Fub5YYmVzZlmsH2afu2MdhYbEyZjoH+EEAAAQQQ8LpA2OsBEh8C3RV4tVzq9n1C7h5XIg/ctp8ctm+ZHNM/R/Y37aTrH1zulgb575vl8sTZr8hzSyukobsxsz0CCCCAAALZJEABmk2jnWW52kLwC8/KX03af509WgadP1EOG1Uk+5VGZGrIkX694Yi6UrW1UV5fUSWv3LJEnpu3Ujb2pj32RQABBBBAIJsEKECzabRTlauSFalqKlPt2ALR/Nxv+ru/JCzOz/aVPaYMlPFD82VUSURGF4ZlmKOkKOxIgTlMWmjjMo9bqjGn1GvN3J3VZgqltRWNsnJdnXy8aJN8eOkieb/W9fSd95mipR8EEEAAAQS6LaC6vQc7IJCMwDw9OZnN2AYBBBBAIE0Cs9UbaWqZZhHotUC6ronrdWA0gAACCCCAAAIIIBBMAQrQYI4rWSGAAAIIIIAAAp4V4BpQzw4NgSGAAAIIINBGQMnCxCctMxLLLCDgQwEKUB8OGiEjgAACCGShgJbiLMyalAMqwCn4gA4saSGAAAIIIIAAAl4VoAD16sgQFwIIIIAAAgggEFABCtCADixpIYAAAggggAACXhWgAPXqyBAXAggggAACCCAQUAEK0IAOLGkhgAACCCCAAAJeFaAA9erIEBcCCCCAAAIIIBBQAQrQgA4saSGAAAIIIIAAAl4VoAD16sgQFwIIIIAAAgggEFABCtCADixpIYAAAggggAACXhXgSUheHRkvxzVf75YIb5ZakVhmAQEEEEAAAQQQSEKAAjQJJDbpIKBleZs1qs0yiwgggAACCCCAwE4FOAW/UyI2QAABBBBAAAEEEEilAAVoKjVpCwEEEEAAAQQQQGCnApyC3ykRGyCAAAIIIOABAS2HJKLg4qcEBQv+FKAA9ee4ETUCCCCAQLYJKKnKtpTJN7gCnIIP7tiSGQIIIIAAAggg4EkBClBPDgtBIYAAAggggAACwRWgAA3u2JIZAggggAACCCDgSQGuAfXksBAUAggggEAQBfas+DR31scvjZ1QvX7kkG0Vo0saa3eNuNF+EXELHNctUOKGmlSoLqpCNY3Kqa0L567bmFu0annRwJXPDp+0/JHBk7YE0YWcsk+AAjT7xpyMEUAAAQQyJBAx/Vz/5gP7Tt2yfP+h2yqnFTZumyRa29WJlxbV4DpOTVSpWhEVzXMbBzi6oTCk3TxdX6VG1GySKZtXygmrXpObnJzlm3ILX/uoZJdXr93j2JdeLR1Wl2iIBQR8JEAB6qPBIlQEEEAAAX8IXPr+07t9dc3rx4ys3XJk2G3axUbtmgKzIpz/yob84rfW5pV+/N6A4SsfHLb/6nf6Dd7WWVYlDY3OrNUvDZu6ddnIETWbRw/ZVjlhQH3N9OF1W2ban4M/fb9uU26/ha8OHPvknH1O/k9FTsTtrB3WIeBFAWYS8+KoeD2meVonQpytOv8dmqcnJ7ZhAQEEEMgSgVvfuGfqF9ctPqOkse4Am3KTE1q3qqDsry8N2v2F/93rmMWbwgXR3lLMWfr8iKM/feuA3SvXH1XUuO0ztr2GUHjNuyUj5n3vgNMeWxEpboz1MVu90du+2B+BdAl0XjykqzfaDYYABWgwxpEsEEAgZQI3L7pvyjFr3zq/MFo/yfyzPLohp/jZfw4Z//Ccyd96vbkaTFlX7Ro6Z+nC4aes/s+xY6o3zHS0Wxp1QhsXlwy/8/gDzltQcWbO6+025gMCHhKgAPXQYPgmFApQ3wwVgSKAQHoFZq59o+zKdx+5YFBd5dGiVOO6/NL/u330IXf9dtyMNentuX3rk6vW5P160f3H71W59tSQGx28LRz5sEjrMwY8eN2/22/JJwS8IUAB6o1x8FcU8/XyRMCz1JjEctsFTsG31WAZAQQCKPDoi7cedWD50h8prYsqIoUv3jLu8GtvHHfo6p6m+uXaT0qOrFs+akxT5dA8t6GwQKIFOdFoQdQcUW1Qodo6J1Jb5eRULo4MXH3PgAmrluriho597VO1Ie+OV+44fXT1xllKdI4SddvAkPqBevAGblbqiMXnPhWgAO1T/gB3TgEa4MElNQSyW8AebZz38h9+tEvd1q+YU94bFg7e45qT9j9rYXdURoRqwz/+9L/7TK3/dNouTbXTinT9OEfr0mTbMP/xduslvL4inLN4dbj41acLR716bfHUj+P72+tEL1vyf3O06C+Yde+GQuETyx68bkn8e94R6GsBCtC+HoGg9k8BGtSRJS8EslrgOyteHHrF4sduzos2jLFHPS+YcvLlT+4ycWsyKCW60bmx/Pn9Plu37qiBTbVfcEQXJLNfsts0SHjtJ5F+Ty0o2eOpa/pNWalX/PStje9W/Ei5+qemEG0IqdCssoevfzjZ9tgOgXQKUICmUzeb26YAzebRJ3cEAikwd8lT485e9twtYe2WLSkeesvhMy65K5kbjA5pWFd0zcYXvjGuacs3w647KBM4tU7knX6qcW7RZd9/ZMvxP/hsk9IPmdPxg5VS5w186IZbMxEDfSCwIwEK0B3p8F3PBShAe27Hnggg4DmBm81k8jNX/fdGM4l8rrm7/bKZB3zv7zsL8jB3XdGv1jw/e3S00t6h3m9n26fje1Nwvmcmt79av7vspUa38W9mEr1xSjk/G/TwDVemoz/aRCBZAQrQZKXYrnsCFKDd82JrBBDwrMBV7z02/syl//yDCdB5eMSUC75vplbaUbD2MUePf/rYsdNr188JSXTAjrbN1HdmaqiXnZrqn2z7aO0vzUTO05WjLh700G9+nan+6QeBjgJOxxV8RgABBBBAAIFmAXszz+lL//lbe+QzmeLzvIq3d12x6o4/HVC75qdeKT5tJubI54FuYb9nc/Ya+5o58rRYu/pX5Sf84DTGGYG+EuAIaF/JB71fjoAGfYTJD4HAC0yrXFXw6As335frNg7/+5C9Lt7Zne6Prn/8iIPrPrnM3FxU5GmcxqZ3G99fYe6410PFcQ4b9OAN//R0vAQXSAGOgAZyWEkKAQQQQKC3Ane//IcrcqKNI98qGXH9jopPe3f74lX3/GhG3eprPF98WpRIeO/IuFH9tagGieo/V5160eDeWrE/At0VoADtrhjbI4AAAggEXuDZf94ws2xb1RHleUV/P/yQH/65q4T3bKjMfXP1Pb8ebm406mobT67PyymMjNgl10zPNHRbbeN9eu5c6gFPDlRwg+IXLrhjS2YIIIAAAj0QOHvVC0MnVaya0xCKfPKdaWf8rKsm7PRKz6578Pf9o3UzutrGy+tVaT8nVFZirw89bNM7FWd5OVZiC54ABWjwxpSMEEAAAQR6IfDDJX+7xDxeM//pXfa56sWy3ao7a8oe+bx3/ZO/KXLrP9PZ935ZF9plkKhI2IZ7Pafi/TJqwYiTAjQY40gWCCCAAAIpELjvlTsOKa2vOWRjbvHT35k265XOmhyoGkNPrX/4mqJow5TOvvfVupAjoWGDzVFQN7/edR71VewE62sBClBfDx/BI4AAAgikSsDO3/m5jR+e6ypV+9NJX7uuq3YXfvLAhea0+yFdfe+39U5Jkah+haLr6g+oPP9/mZrJbwPo03hjx91TFftf39gyw3Vlhm3PcWThkZP7L7TLvAIqoLWS+8x4u6LlVLUwoFmSFgIIZInAPS/94bC8poaxK/sNumvBsMnlnaX9l/VPHL5rQ+VJnX3n53XhIWXSWFWjGqtqf1t97Z1/LbrktPV+zofYvS+Q0gLUFp/mYubY473Msn0tjP0v/xM8gXv1vjJfHjGJjTY/75vzNxNFqeZRD162ZIQAAlkgsP/mj76jHWfbL/Y+9u7O0p1T+fYIM9XSFZ195/d1qiDPHAUtkGhldX7T5q2Paq0/ax7jyd90vw+sh+PnFLyHB8fToUVklYmvrCXGCXK3HNcu3rA5KsoLAQQQ8InAjW8umFQQrd9jTV7pI48MnrSls7B/uOU1708y31ngSa4LDTZ/0s1RpOjmiv0rf/a77yW5G5sh0CMBCtAesbGTzFSbRUnrc4S1XC7P69Yj6k3mxDwvBBBAwCcCMza+d6wN9YmRkzu9EeeJ9Y8dVexum+6TdHoUplOYL5KbI9GtleYIgr7anIrfpUcNsRMCSQhQgCaBxCZdCtiL9OPXCe1rjolemtjS/CM6scwCAggg4GGBcdvKc4bUVh5RG8r98Io9jl3aMdTPNW0sPLBu/YUd1wfxc6h/P5GmqLiVNSXRutrWgwxBTJac+lSAArRP+X3e+SxVY46C/rRNFpdL/BnwIalvs55FBBBAwLMCV7z16AGORPuZm4+e6CzIX6//x0khiQ7o7LugrXNKi2MpuVurzLs6uep/f79X0HIkH28IUIB6Yxz8G8UIucMUoYtaErCzmDwg8/Vgs26bf5MicgQQyCaBiVVr97P5/m3I3i92zHt6dHP++KbNJ3dcH9TPKiciypyG19W15nJQrdwG9ydBzZW8+laAArRv/f3f+6GqSSLmBiQln7YkM85cPPSs+Rzyf3JkgAAC2SAwcFvV9KgT2viLCV9e0THfGz/9+wmO1qUd1wf5syoqEN3YJLq+wRwElRMrfnHH7kHOl9z6RoACtG/cg9XrSWq1KTq/ZpKKn3afZK4AfcD8NJ/LCVa2ZIMAAgESOHr94tL8aMPum3MKX+0srbENW4/vbH1P1uUePFWKf3yW9Dv/WxIaNawnTYiYI5QFM78sxZd/VwpP+5rY6ZNS/XLMdEz2pavr7FHQkKqvPyPVfdAeAhSg/A6kRmC2etk0dHaiMS37m2Og95l/Pe+dWMcCAggg4DGBo9a/NcbMGafW55W81zG0G8tfmJSrm0Z2XN+Tz05ZqeQdun/suetO/2IpPOUYCY0e3r2mTPFZ+K1jJbLnGFHmaS/hkUMl96DJ3Wsjia1VXnNR625rPqZgpjT5lilEqReSsGOT5AX4hUreii13JjBbzTObfNv8xI+EDjNHRv9ofj6/s135HgEEEOgLgTGVG0fbfj8pHLDSvrd9HVG38pi2n3u1HGp/VZKKhKXw5KOTL0Jbis/wiA4zI4VbZ7/rVXxtdlY5pk1HNZ+Cb16/a8VVv/tCm01YRKDXAhSgvSakgXYCzUXooYlrQpXUmWtEl7Tbhg8IIICARwQG11eOtqG8UrLbSvve9jWoqfbgtp97s+xuKJeGd9rP8JR0EdpF8enW1En9S2/2Jqwu91W5uSIN5hrQlpd5JtJX4su8I5AKAQrQVCjSRnsBezo+ItNNEWrvjr9SmqTTZyq334lPCCCAQOYFzPWfuyhzueM9ow5a17b3H1UtGh3W7uC263q7XPfI36XxvWXtmtlpEbqD4rNm3mOiK+x0Sal/2bh0Y5vpnLUclvpeaDGbBShAs3n005m7vTHpVFOE5snN5lrQpnR2RdsIIIBATwUi2i2IKlVXkRNp9/S2L1WuiE3N1NN2O93PPOay9sFnki9Cd1J8uhs3d9pNSlaGTHlg4pVoM4t5MtJePBkpJbI00iLQ5cUjT7y2pdvP8ra/q/GXWb7StHFl/HOy78dM62/+McorEALKnLSxr/v0OnNH/Ihu5aTkJ+ba0Z7dfarkKrPvX7rVX3xj+o1L7Pwd550bxbfg9yousfP3DP9efVg0WEbVmEJOydfb/t3YNVq1786D7cEWLUVowTeOMDcTjU00ED8SWnPfkxJduSZ2t7u94ajjNZ/2tLs98pnW4tNGZQtQ89LaNTQty/W1nzWreva3NdYa/4NAqwBHQFstWEqXwEnmFLxrrgXlhQACCHhMoKipXmoiOdtFVeg2jt5uZapWtBShXZ6O331U7G73Pis+bZ7mLvvYK9p6ZMkcDN2zeSX/i0DvBShAe29ICzsTUEpLoSznVPzOoPgeAQQyLdDohCTitrnW0QRgH+mWJ02j0hrLjorQk47quyOfLUkrE1/s1eacpBK1R1pNaDyrBNr8avU+7ydf3zLX/M7GTrsr84zwo6f2n9v7VmkhMALzdaEpQseZK0JT+nsXGB8SQQCBjAsse+rHtxdG68ftcux1h8Y7P632/cE3fPqPp+Of0/pu/mPZ8XR8x/4ydtq9TcfRNZ9KtLxCcvYylwmEm6eQMqH+t+TKcw5osxmLCPRYgCOgPaZjx24LzFI1pvhc3e392AEBBBBIk0DUUTUhHW1+9E9LH7s3bC1JU3fbNxs/EvrB8u2/M2u0mQw+I9d8duhdx0+9t5u/VA3ssBkfEeixAAVoj+nYsUcCs5WdkmmVmBk+erQ/OyGAAAIpFKhX4UpTA0YOKl9RFG+2f7S+ML6ckXcz5ZEqaFcDt3ZrCkBVmN/6OVNLTWbyEnsjUtvzVVr6Zap7+gm+AAVo8MfYexnaIjQqS7km1HtDQ0QIZJvA1pyCVTbn49YuSlzzWay3dVENpkGni6mW4j3F747v9mM74w308F3XN4hjYmv70kpTgLYFYblXAhSgveJj5x4L2NPxOfIBd8f3WJAdEUAgBQJrc5sfwTm+Yv3oeHO5rtu+8op/ker3LopP3dT+pqiMF6GuayahN0dAc9vPDmBuJ82MS6qdac+TAhSgnhyWLAlqpmqQb5siNCqfcDQ0S8acNBHwmMA7A3ZdaUMaUr91TDy0KpVTG19O23sXxae94aj6Dw8lP1l9GgLU25ofwak6FKDmuqnqNHRHk1kqQAGapQPvmbTtFE2nq43maOgSM9fxevPT7mkknomTQBBAIJACN485fIVWqnpwfdWUeIKbQ5Ga+HJa3ndQfMZuODLPje/WE5NSHKRb2zxts1OQ175lpdLz3M/2vfApSwQoQLNkoD2f5kwVlVPVOtlVFptYV5lblCpNKcqNSp4fOAJEwN8C9hGcFTkFr/drrJ84feva2N0+myJF6TsCurPiM/54zfjd8d19dnwKhkNXmfTNzUcdb35SoitT0DxNIBAToADlF8FbAoeqJrE3KX1bLTOn5982RegKc3p+ozkyWmXKUXteKMod9N4aMqJBwO8Cqwv6v2qedR4+96O/xY6CPpk/er2yZ2dS/Uq2+Iz32xdFqOlTm8sAVIGpxeNPQ0rEIx/HF3lHoLcCXT4LvrcNsz8CvRZofpb8VtOO/eGFAAIIpEVg0jfm1Jpq86Ij17491fwD+JZ3TC967q12zuKRqeywsCdPOLJF6EPPSsEJ5glNnTw7vvqPD4v7qZ3dLjUv1xz91OYmpFC/TmaiUuaafV4IpEiAI6ApgqQZBBBAAAF/Cgx68MYPzBnnV03ZeYI+a25sCiZzADSlxVZo2GAJjx7eDijpJxyZgtAWoZ09Oz53+j7t2uztB3dL81l2p3T7GZfMtbLv97Z99kcgLkABGpfgHQEEEEAgawXMKfd55jKfovJNW4+3CFrUm6nEcKubjyzG20y6+EzsYIrQB5/Zrgh1q1J4Y3rUFbeyWpyifFHmcoGOLyWhtzqu4zMCPRWgAO2pHPshgAACCARGIKcw/35z4802reR8m5RynH+kMjltCru6x56XqLnJqGn5J1Jz5yPixm84SrajlmtC6196U6KbK6ThrffFLqfq5Zabq51MH07/Tp9EWlk8of9rqeqLdhBo+5CtXmv89Y0tM8yZghm2IXPt8sIjJ/dfaJd5IYAAAggg4HWBDcfPudkc+jw3FHKOHLDf5H9V1lZv0VpvfyjQ64n0JD7X3OX5/nJTeCuJ7DGm/SM4TXtK1BMlc79/bE+aZh8EOhNI6U1ILQXnws46Yh0CCCCAAAJeFghFQte6je5ZUde9XF0866Ctc3/7son3YC/HnKrYovbop3kCU2j4kO2Kz1gfSp5JVV+0g4AV4BQ8vwcIIIAAAggYgbL7r19tjoDeaX4+u+GEOd8whwPvywoYU3jaSwPsIz+dAcXbpWxOlTaFwpEF233BCgR6IUAB2gs8dkUAAQQQCJZAXij/cqVki9LqhpyayifNqedtwcpw+2ya1m9qPvo5dJA5+tnplXnPFP3kzE+335M1CPRcgAK053bsiQACCCAQMIF+D/5io7ng8VJz7efw2mXrLzbLjwUsxXbp2LvzXXNDk+pXIJ1NvWQ3NtMv3dVuJz4gkAIBCtAUINIEAggggEBwBAY++JvbTeH5ktbueU2r1tvrQIP5ippT76vXx+4ajph5Sjt/qeUlB+/5SOffsRaBngtQgPbcjj0RQAABBAIoYB/DGdHhk00RujW6peJyaWj6ZwDTFFNci25skvBwU3zm5nSaopnR5hfq0EObOv2SlQj0QoACtBd47IoAAgggEEyB/n+57mNzaHC2uSJyQOPSlYPFzDEYpFd0fbm4VTXmpqMSM+/n9jceNeeqVvUbEpoXpLzJxTsCFKDeGQsiQQABBBDwkMCgh2943ExIf7WOuns2Lv/EHC70UHC9CMVOOB/dUC5Ofq6Euzz1LmLmQ/2hOvvsxl50xa4IdClg/nHHCwEEEEAAAQS6Eth4/A9uN9eDnhkq7dcYGjE0Yk7N+/blbqmSptXrRJlT7pGxI0TCoU5zMSk+XTL3nCM7/ZKVCKRAgCOgKUCkCQQQQACB4AoMdA78nik6H45urYo0fbxW/Ho63i2vkCZzINfO9xnebXiXxaeZi6lW56pzgjuiZOYFAQpQL4wCMSCAAAIIeFZAPTgzOqhsr5PMFJn3uOaZ7o0rPonNm+nZgDsJLGrm+mxa86moHFN8miOfKqfrJ4wqR3+v9NLvL++kGVYhkDIBH59ISJkBDSGAAAIIILBTATM3qCo/8Ye/cZui59sCLjxyqKiCvJ3u16cbmKcc2aOebmVNLNbI6B0d+YxF+qfSueec0acx03lWCHAENCuGmSQRQAABBHorYKdnGrjg+jlOYcFV5rnpunHZanMzz5beNpu2/XVNnTQu/ThWfDqlxRIZs+sOTrvbR8CrV0qKB52btoBoGIE2AhwBbYPBIgIIIIAAAskIlJ/38zPdTZW36foGZY+C2rvJPXM01E4wb065RzdX2qrSzPM5ZAdTLTVna4rr91Sk8PPFP55dnkz+bINAbwUoQHsryP4IIIAAAlkpUD331pMb1m24u2nT1tjZRKd/iYSGDIjd5NMnIFqbx2pWSuzZ7qYIdYoKJGQL47zOJ5lvjVGtysmPHFTwP2eai1t5IZAZAQrQzDjTCwIIIIBAAAUqf37rV9zahgfMdZZ5rjnlLY6SUKkpRAeVdvl0oZQzRF1ztLNC3E1bYk82UuGwKTwHmme7dzXBfGsE5saqxZG8nC9TfLaasJQZAQrQzDjTCwIIIIBAQAUqr/rtZ3WTejxaVT3ATvCua7aZU9/KHIHMjxWBTnGRmdU99bdcuNW1ordWiVtRJWay/NiRV2dgfwmVlcSe774zblMA/NtMt/QVc8e7dy9k3VkSfO9bAQpQ3w4dgSOAAAIIeEVg689vGytu9AHReqo9Eupu3CJudY2ZM9Q8PskcFTU3Lokyp8SVLUrzcmMFandjt89t16botO1r8xhN+9m+nPy85kdqDjBHPE3hm8zLRHRr8YBRF6rzj6pPZnu2QSDVAsn9pqa6V9LAUOQAABnzSURBVNpDAAEEEEAgYAJ6wYKcyvfKrzVPTZoTS81MgeRWVMeOULo1tZJ4lKfjmCcRhc1cnKYQzTUPVgqFzI/5z7EyTyUyb9o+d94Wrm5UdH2j6IaG2Lu58z4hZp9kpEqKJGSe426Xu/Haaro7o9/l5/ylG/uwKQIpF6AATTkpDSKAAAIIZLNA1c9/9wXX1beYeUP3TDiYgtJOixQ1haiuMwcd601RaY9gmhuHdvoyj8tUplC1R05VYb75MUdSzdOMuvsy/8FfEAk7FxZc9r013d2X7RFItQAFaKpFaQ8BBBBAIOsF9G23RarWRy9wtb7MYHR+N5AtShsamx/taY562us4YwWpvV7UHiU17/aGoq6e154sspnfc0lIOecXXfnd55Ldh+0QSLcABWi6hWkfAQQQQCBrBfQNd5ZWVNaeo7S6wJSbAzMMsSgUCv2i6LKz/2Lm+TTVLS8EvCNAAeqdsSASBBBAAIGACpgjogVVn0ZPNqfmTzXF4OftYz3TkqqSGlPsPmKOeN7FEc+0CNNoigTS83+AFAVHMwgggAACCARNoO6qO0Y1Rhtmmqs/DzNHRT9nbk4q7FWOSq1RWp43d8A/XVxQ+Ki6eJa5/Z4XAt4WoAD19vgQHQIIIIBAgAVi14pubJruumqS0nq8KUb3MHfCj9Kiis31oP3Mf6TNJKKqSZSuMgVrtfl+izmCutRcLPqhuVD0AzPF0ysll3/XfOaFAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIJAOgdyzbho75KL5helomzYzL+Bkvkt6RAABBBBAAAEEkhcoOu+mQSrqPl2xdeuU5PdiSy8LUIB6eXSIDQEEEEAAgWwW0NoZdtZtBU21+gmtZXel3WnZzBGk3MNBSoZcEEAAAQQQQCAgAnfrr4TujfYvb9p2gojez2ZlitDpAcku69OgAM36XwEAEEAAAQQQ8JjAPfoAceX+0NtPLDdl58REdIoCNGHh8wVOwft8AAkfAQQQQACBQAncq8eZ4vPx8MpX81X5ytbi0ySptRpbesGdpYHKN0uToQDN0oEnbQQQQAABBDwnMF8Plqg8HVr33sDQypfahKd08wettlVVTm3zBYs+FaAA9enAETYCCCCAAAKBEpiv7RRLTzqbV40Jf/j3RGoqkvcfpeTO+AqzzHWgcQwfv1OA+njwCB0BBBBAAIFACDyvw6LlQadq47TI4ifNuXY3lpYuGiQN0075syidOBzqauFO+AAMOgVoAAaRFBBAAAEEEPC1wGr5vTm3fmTkncdEog3NqeQVS+M+x4mbU7RPSOTVeH5KOAIat/DzOwWon0eP2BFAAAEEEPC7wDw9VzVuOyPyziMiDTXN2UTyYsWnzikQMafcp+/6mSXmizr7pdZ6pJ2YvnlD/tevAhSgfh054kYAAQQQQMDvAvP1GcqNXhl553FRtVuas3HC0rj3seIW9I9nN3HhITPC5trPN+Mr3G2K0/BxDJ++U4D6dOAIGwEEEEAAAV8LzNdHmXvbfx9+72lRlWubUzFVZtOEL4lbPKw1NS1hWSP7mknoE6fhXVdzI1KrkC+XKEB9OWwEjQACCCCAgI8F5mt7BHNBeOnCsLPpo0QiTWMPkeig3ROfEwtRma6Uei3+WUts//hH3n0oQAHqw0EjZAQQQAABBHwrcK8eY2J/Mvzx64XO2rcSaURHTJXo8M8kPrdbUDItrMKJAlRRgLbj8eMHClA/jhoxI4AAAggg4EeB+/RAaTITza//YHBoxYuJDNzBe0h0zOcSnztZmH7Rrt//wNyQVGW/M6fjh+Z/93fDO9mOVT4RoAD1yUARJgIIIIAAAr4WeFwXmOLzCWfL6nHhD581qTQ/3Ej3H2Gu+zyi5VMXGWrZY+5eUqC0WhTfQjU1cCNSHMOH7xSgPhw0QkYAAQQQQMBXAgt0SLbI/U71pv1jE8270Vj4unCgNO51jGi103LEkUaZolWbG5E084H66negQ7A7HfEO2/MRAQQQQAABBBDonkCd/NZMNH9s80Tz9c375vZrnusznJNcW+ZGJEc5ietAzXl4joAmJ+fJrShAPTksBIUAAggggEBABObrn6im+rMjb5unHNVXNycVzjXF51dF59rHvyf9muY6urUAFeYCTVrOgxtSgHpwUAgJAQQQQACBQAjM07NVNHpVZLGdaL68OaX4RPOFZd1NcVr97ecvM9MxxWasN1MxleV95+bdutsI23tDgALUG+NAFAgggAACCARL4B59hJlo/g/h9/8mauualtzsRPNHiFvSgxvYtewu92r7eKTEUVClo5yG9+lvDQWoTweOsBFAAAEEEPCswDw9WaLyUGjZCxFn49JEmNGxnzcTzY9LfO72QpNMNfskClCX0/DdJvTKDhSgXhkJ4kAAAQQQQCAIAn/Wo00aT4U/eaNfaM0biYyiwydL066TE597tKDME5Gc1jvhlXAnfI8cPbATBagHBoEQEEAAAQQQCITAAj1AGuSvoY1Ldwkt+1ciJdcc9YyOPTjxuRcL0yTS+kQkMyH9VK3N5Ey8fCdAAeq7ISNgBBBAAAEEPCjwvM6TOvk/p2LNhPD7z5gAWyaaN9d7Nk34kpnrMyUxT6u79ZzV5kakT5tb08XFZ/xufEpappGMClCAZpSbzhBAAAEEEAiggNaOrJZ7nZrNB0XefVzEbYolqQvKpHHvY0U7odQkrWWkzNeDTWmbuA60UZq4ESk1uhlthQI0o9x0hgACCCCAQAAF5suNalvN1yPvPCrS1DLRfE6hNE4yc32aOT9T/JqmVGsBqsWlAE0xcCaaowDNhDJ9IIAAAgggEGCBnI0f/S7ntXs/kfqq1iwbasQ++Sj80QsSKl8pKtrY+l3vlqY5Wr0ab8IUo9Pjy7z7RyDsn1CJFAEEEEAAAQS8KKCWPHWYucQzv/mqz9YIVU25hMyP2LvhzWl43W8XcfuPjP3o4iHmKtEeXRg6XSn3tpZLTG0bk7+xYEHowZkzmx8w39o9Sx4W6NHIezgfQkMAAQQQQACBPhCYO1c7135y02RThH5Ru/qLWqmDzPPauz7/HsoVt3RXcQeMFG2L0vzSZKNeL7PV0Lwzblxt7oDf1e4UUWqf6j/OeTfZBtiu7wUoQPt+DIgAAQQQQACBwAns+oMF+Rsr1n9elP6iuSP+cHMb/GfMe9d1R26/xNFRt/8I0ZH8rk1CMiL3HzfdZNr7mt1IOer0bXfMubPrHfjGawJd/yJ4LVLiQQABBBBAAAHfChSdd9OgaK0+zB4hNUkcbo5ejuw6GSW6cGDs6Khbao6Qlg5vfye9I1/Le/7GvUxbV9s2HKVurfvjnHO6bo9vvCbANaBeGxHiQQABBBBAIIAC1Tefv9GkdX/Lj/Q785bxDTr6RXOa/nBzDPNQ817Smra5srNmo7l+1Pysft1UmGHRxUMTR0ilePA0M/HTP8Vt3sNMSM+NSK14vljiCKgvhokgEUAAAQQQCK6AvYnoiWfWT9diTtebgtSUnwea90iXGYdzGs1d9QvNUVR7NNXUr6p+71Bev9dvPztlt9p32TdfpESAAjQljDRiBezj0Ha/+M4nlXKenDy94PfckcjvBQIIIIBATwQGff+3RTX10UOi2j3c3ChvilKZuLN2QuHw1Nrbz120s+343hsCFKDeGIdARDH24rtmae3Os8mYx6QtDmnngg9/PfvvgUiOJBBAAAEE+kyg4KzbhrrRbeZGJnO6Xil7/eiw7YJRznfr/3j+bdutZ4UnBShAPTks/gtq4twFRdtqqj8w1+G0+6NgCtFHlaiLPvrVt5f5LysiRgABBBDwokDR2TftFW3SXzSXgNpT8IeYwrTI/Pfmjm1/nHOmF+Mlpu0FKEC3N2FNDwTGXHTX/5qH/17a2a7mj0KD0nJDyBlw9QfXfrXNYzI625p1CCCAAAIIJC8w9azbIovd+gNMETraFKB3J78nW/alAAVoX+oHpO89Lpu/W9O2pvfMdBixCYePnDJ+4QdrNoaXf7r1oHZzvim13vzCXfrRtd+eZ4pSszkvBBBAAAEEEMhGAQrQbBz1FOc89qI7HzZ3Ln7dNluQG3n3zxeeONHekLRk9aYlVz/8fLRmW8M+bbs0z+19TRyZs+yXp7/Udj3LCCCAAAIIIJAdAhSg2THOacty7CXzDtVu9B/NHSh91SmHL957xOC923b46CvvvXj3wjfHRF13aNv15kLy+xwV+Z+Prv3WJ+3W8wEBBBBAAAEEAi1AARro4U1vcnbettdfrVlkrruZZHsaNaT03zeedvTnOuu1ocmtveHxF195+YPV+5vT8q3PV1NSa2YY/uWQoQW/evnCmXWd7cs6BBBAAAEEEAiWQChY6ZBNJgW2jT76u6b4PN32af4lU33dt48uKsgNF3UWQ8gc6vzcnqNGf2GfMRteW7ZmcfW2hhEt25mJhvWhNdWNp5Z9/mtrN7/46OLO9mcdAggggAACCARHgCOgwRnLjGay79w7S6uq9VJzJ9FA2/Ghk8YsnHPUgTOSDeL1ZWvf+tWj/8rd1tg0od0+Sv3LCTlzPrpm9hvt1vMBAQQQQAABBAIjQAEamKHMbCJjL77zN+ZGozm215DjrH7gh98cHA6p2F3wyUei3Pv+9eaLD720eIKr9aDEfkpcJc6fpND5ybK5szYk1rOAAAIIIIAAAoEQoAANxDBmNonxl945wUwA/I6ZdD5se/7ul6f/58v7jj+gp1HUNTZVXvPIC4veXr7uIHNE1ZySb36ZCewrxVE/Kx27902vnz2N5/vGYXhHAAEEEEDA5wKOz+Mn/D4QiDbJDfHis7gg743eFJ82/PxIuPinM78w46bvHLOmrKTwlXhKZmqnYnON6aUNKz7o9LrS+Ha8I4AAAggggIC/BChA/TVefR7tmP+562hz6v3LzYGo6BUzDy1MVVAjBpaMvu7UL+0XDoWi8TbNnKFXvHPNKVvin3lHAAEEEEAAAf8LUID6fwwzlsHU216LSFRfH+9wwvCyF3ffZcD4+OdUvM9f+KY0RaOx2RnK+hVs+v35xz+QinZpAwEEEEAAAQS8I0AB6p2x8HwkW5e9e76ZMqml4FQVPz5hxsRUBv3RunL5x7vLE02ef/SBA4fk533wzuaG75mjrkwZlpBhAQEEEEAAAX8LUID6e/wyFv3YufMHa+1eHu/w6Knj3yzOzy2Lf07F+x/+/lqimQPGj5DPjN7FXAKqy8z1pjd9UCW7J75kAQEEEEAAAQR8LUAB6uvhy2DwtdGrREuJ7TESCi8//fBpB6Wy9xcWr5QP1myKNRkJOXLaF6YkmjdTNdw6oVh9kFjBAgIIIIAAAgj4WoAC1NfDl5ngx118577mSOQZ8d7OO2b/zSHVPAVTfF1v3usbozLv+dZ554/db08ZUtp847tSqlyHInN70z77IoAAAggggIC3BGLzOHorJKLxmkBUy40mptg/Vgrzc5YfvOfoaamM8eGXF0t5tXkkvHmVFuXLzAP3TjRv74Lfp1RxF3xChAUEEEAAAQT8L8ARUP+PYVozME88MlMu6YPjndTUNYy5eN7T8qG5YSgVr42VNfLIK0sSTc2asa/k5bT8u0ipdyf2j9yW+JIFBBBAAAEEEAiEAHcWB2IY05fE5hcfXXbLc28tMz3sb3762Z42V9fJs299JOu3Vsv4oQMlPzfx8CL7dbdet/71FVm5ofkA5+5Dy+TsI6Yn9g+FnZMH54ds37wQQAABBBBAIEACPIozQIOZzlTufGPF6MXLNrz3+Gvv5zU2JeaJl7xIWI4/cKIcZ67bjIS79++Zxas3yE/ufTYR9i9P/ZLsMXxg7LP5xXx0n4G5X0t8yQICCCCAAAIIBEaAAjQwQ5neRN4ub7jdzIl05oaKarnzH2/Iyx+satfh4JIic+f6ZDlwj5Ht1nf1wUytJBfe9ZSs+LT56OfBE0fLhcc231hvngFfr8ORvSaVqtZJQbtqiPUIIIAAAggg4DuB7h2y8l16BJwKgSWb6/fWom43banCvBz53J6jZO+RQ2T5p5tla822WBc19Q3y4vur5N1VG2TMkAFSWpi3w67tKXz7Y1+5kZD8+PgZUtByKt9cmPzrfQaEH9phA3yJAAIIIIAAAr4V4Aiob4cuc4GbKZicd7c0nmXmAf25WW4+R266t0cx//bmUrnvhbeksq4+EZC5c12O2HecnHLwZ8RMVp9YH1+oqW+U79/2mFTUNu9z8ucnycyD9ol9bXZdHynLGT9Bqar49rwjgAACCCCAQLAEKECDNZ5pzWbFFl1a5TZeaTo5x1SfiTuP7NHPB/79jjz1+gfS5JqqtOVVmJsjJ35uHzlq6h4Sdlp/1f70j0Xyf6+8F9tqUHGh3HrWsYnrR0OiTps4MOeueBu8I4AAAggggEDwBFqrguDlRkZpEni7Uk+QxobrzRHRI9t2saa8Qv703CJ5ffnatqtleFmxnH7YVJk6Zpis3Vwp59/xRKJQveS4z8tnJzRfN2qu/Xx177LI/mby+dYqtl1LfEAAAQQQQACBIAhQgAZhFPsoh3c2Nx2t3eh1pvs92obw+rI1Yo9yrimvbLtapo4dLvWNTeY60U9j6yeOGCxXn/LF1m2U89lJZZGXW1ewhAACCCCAAAJBFKAADeKoZjAnc01oxBSi55krQq8wp+VL4l3bU/FPvfa+3P/iO1Jrrvns+LLXiV7/7aNktyH9Y1+Zo5/37jMw51sdt+MzAggggAACCARPgAI0eGPaJxktrdKD6hoarza/UGfYm5biQdgbje574U15xtzxbm9air+O2Hd3+f6X7dz29qVq81Vkj3Fl6pPmz/wvAggggAACCARZgAI0yKPbB7kt3tKwrxuV32jRh7Tt3s73ecdzr8liM02TnW7pd2d/VUoKWu6QV84V5tT7z9tuzzICCCCAAAIIBFeAAjS4Y9unmb1dXv8N88v1K3PUc1TbQF4yc4XWmetAD9tnTGy1ORX/cdGAnAm7KdU8oWjbjVlGAAEEEEAAgUAKUIAGcli9kdQKrfNqypsuckX/yFwjWthpVEpmTirLfbDT71iJAAIIIIAAAoEUoAAN5LB6K6kPNunhDdL4S1Fysrk+tPV3TqkXJpXltDtV763IiQYBBBBAAAEE0iHQWgyko3XaRKCNwNvljQcqrW8014dON3N9uo4jUyf2z3mzzSYsIoAAAggggAACCCCQWgF7BPTdTQ2z39lcf3VqW6Y1BBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQAABBBBAAAEEEEAAAQQQQCAoAiooiZAHAgj0jcDWub/Vqei5dO45/D1KBSRtIIAAAj4QcHwQIyEigAACCCCAAAIIBEiAAjRAg0kqCCCAAAIIIICAHwTCfgiSGBFAwB8C3T2NnqrT9/7QIUoEEEAAgbgAR0DjErwjgAACCCCAAAIIZESAAjQjzHSCAAIIIIAAAgggEBegAI1L8I4AAggggAACCCCQEQEK0Iww0wkCCCCAAAIIIIBAXIACNC7BOwIIIIAAAggggEBGBChAM8JMJwgggAACCCCAAAJxAQrQuATvCCCAAAIIIIAAAhkRoADNCDOdIIAAAggggAACCMQFKEDjErwjgAACCCCAAAIIZESAAjQjzHSCAAIIIIAAAgggEBegAI1L8I4AAggggAACCCCQEQGeBZ8RZjpBIDsEeLZ7dowzWSKAAAK9FeAIaG8F2R8BBBBAAAEEEECgWwIUoN3iYmMEEEAAAQQQQACB3gr8P3BqUYZ+7dt1AAAAAElFTkSuQmCC";
+            Assets.emptyState = KASClient.Assets.emptyState;
             Assets.cancel = "iVBORw0KGgoAAAANSUhEUgAAACoAAAAqCAYAAADFw8lbAAAAAXNSR0IArs4c6QAAAY1JREFUWAndmd2SwiAMhTvO7AP6lnqzD7g33RNs3FgB8wfaZQahkOR8BrRMuyyirOt6Rr2gfonhqV3S3hjOVWFMEuQPKpVv1OmwpLlpoyksj7AYlJBkRGUqLPQkZAHAByXuBkudbQDNU5kCC9UaJMPcYHF15ZFGOxQWmj1IRrosSsMhsGZts0P152gbdGu6HW18xTqsFQ6ggE7TSAtUgU6PnR4Q0CNi5uwjkdFhkKyRIZARg3m6bUQo4tuFak16BD0+LX3TuEXYYmuC0BobAOiW2ytDbskP3wPqmkPEeyGZOAA7PpMMya0Ddj6kAzYMeWLRf9seYukdkHApJbwF1CsPuc//e1JCUtao9sq4zEJVk8kCYLFVL6XG0CPs8dGwNG0ighHfJlBtIkMoI0aN7T6WKZAZ6w5InRGB02OmBxQpSIudFkjA7bthjXCAPVHn2q3lduzAvJoya5odXhEY5k3aMD7Mg9xjPBqnlUJWa7DjTjiV7dHYBn8vG9hnBzsVUjDIE9ozpDCkzH7kC7Ff3A9D7M5G9BsAAAAASUVORK5CYII=";
             Assets.dropDownTick = "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAAXNSR0IArs4c6QAABPBJREFUaAXVWltoHFUY/ibbSzYaYYtFrVpbTLVCX6xKFTVNtKn6oDUopdLog6UICgo+CL4FBB8qxAcRQRBBW8EomiI0mqBtY1rRFqogEjFQW2hrqzViarrVxvH79uy6M7Ozc9udzeaHszNzLv/5/vNfzm0t1IMG7SwuoAc2usluNVMHU46pnUk0zTTFNMk0AQt7sRij2Gyd53dNZCVuvcvOYRab2H4TgW/ksy0mrxkKMsI2u5Fh2mpJwNgUX4BP7DaO5fME/QJ7K41w7I49DaYpzA7qbAAPWjOessDP6AIM2hmayTYC72e6KpBr0kILpyhIP83rLZrXbBQ20QQYtK9GHkMEfmsUpjXXsXAYrXiYQpwI4xUuwDv2OjL5OLVRr4ZQ2gB68YT1dbUqym8JKsROu4/A9zUcvEDJTNW3MARQdQ2o4SzeDWjbuKIMHkeftdOvQ38BZDaSHrTE5qA8nbvLz5wqBTAOe2hOzCZosOQTrbjN69huH1CoNNEmnTAZBDCsTD4hbMLoILcAJs43JlQ6QER+VRgXRgeVTcjMsJNNZzoOsIVXmVKOa63ijF3WgFkeNJ/peAWQKQlrkYwGtDC7iGPMq9fapsQ/rec0FuA6LQCNBsyqcr6A16C0F1fC/8/EWhY3nBZx+LasSNxtAbPFsJTFefxGNnHX84l7VsNLFgAfdQEblwGvTwDPfgP8G4/jDLK4vKWwk2ow+CWLgM97DHhhfoZ7uF13AwvLMTGKKG3C3sKw2R2ldr3qXEM9j98PrFvq5rhlJbVwkzsv9IvYqcjCHja0bj0q3HgZMLIBWH5pJbc3fgRe/aEyPyRntaJQR0iluhTfsgT4kiPvB/6l74CnueqP6QPC1SEN6PQgVbrnSmCIhtq+0N2NbQPPHQJeoxMnpJw0kCj+5+iI73cCN9AsguiR5cCeeyvB/8Ph7huvCby6bTcTWRACn7JlWWDsPmDzCuOQa2kefrR9lRFysWv9CMxc5FnMF8B7R/1axcuTADp0ikyrqK8DDwBrioa3lFuefRSm+wo3ixfXAG/eAWQ8QzR1AdgwCgyfdNdP+DUt9rEOlG7maCsUOkm2Pczo0nstuHECBrggf3mts4Z5P8kTn87PgK9+rSxLmDMlJ9ZxX0dUBoPHgHM0gQ/XA1m1LpLM5APmjZ8B1tNpvfTTn5y4OPI//+Utqel7UhqIHQP2nAB6COaPv92dy1z8wB85C9z1ad3Bq/OJFup8rxtGtK8DNINOgjoVchC4/xegiyegZ/LR+MaqRew1L+ZWclYd7QGu9wnGQ8eBx8aAPENmClRczOmI25wSJ+rj6DngzmHg29/dzd+mZz26PzXwihYjOp6XD4h2m0ey39M0jy5Gl7HTpv0r3wNPHgRm7WT8IrYqYFbU41q2PlvKVg7HQwylilQpk2dLqcsFnc/XSLL1BoCX+ewoXYiUTEhLugEW6ES4uckcqwyUQJYF0DmLhf5SQdM+hdFxi1MWQIh1M6LLhWYlYRNGBxkndmRwk6/bmHl6uCtBzLVOL9/SmDudQxXnXVh6vSfTYuA2oRJLXetksL30OedPYaly1eQvgBDrRkQ3I3OriXwBQ5XbGcGs9AHlOqnJL/nCBZAwTXzNWt2EnFqQY7fidnrMU6lOdpqk1If6inBHLIjRNOAUZt7+1cAphN7n7Z89vILoew7/bvMfy2FbsoAtOD4AAAAASUVORK5CYII=";
             Assets.excelIcon = "iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAJrSURBVGhD7Zi/S1tRGIbzP/gHqDg7OnVwFHHrkklwKm1X7eQkiFOrdKiSoVRoq4MgJYvE5YIgggRKKYUOQoYSsEMpsVDIdHrf6/ns5/VLPm/OObm5eB94MOa7uXnf+yMnpFIy6kyNTzwJ6FLsmH2rMOCNTCBeb259D14iZIH9j3vmqtP5GbRE6AIgaIlhFADBSqQL1Gq1vmbZ5vnTZ8ljIkiJYRYA3ksMuwDwWiKPAsBbibwKAC8l0gV8gk8hTVrsbJzsDHIGPnw+MhvRbk+B9DyXgww2TnZ6FajX6yaKItNsNk2r1TLtdttucY0UitTmkOO1QLfbTf6eXXwxja+nZqvx3izvvzTV7RdmevWxmVieS+ZSKFKbQ87ABeIws5MLM2+kkP0EUihSm0POvQvEb/4uNor9TWEGEUihSG0OOVkKiIGy6ptcCkhHldTmkFMWyCqQQpHaHHIeboH5V/+/qxycH988j8fEo/XFW6+BQApFanPIcToDWLAIhMU6QPBSXN84Fahur9jdmGTVhaDz90/PRQ1IR5XU5pDjfA/QWfjx6zIJDlBE2hYCKRSpzSHHuQA/C6Df0YdACkVqc8hxLgC/tS/s7npf+ySQQpHaHHKcC/BPI1C4M8DvAUK7B3ziVIBf//hKTWtAYT6F6NrH0cf//HJ6e3J4Z3sIpFCkNoecgQvgiBNrn3Zunk8vbvw1EEihSG0OOc73QFqExqUFpcsISKFIbQ453gtoAikUqc0hJ5cCPinPQFaBFIrU5pCTpUCxf5VIE4cp1u9CEnix3U9CoX6ZA+kCeVAWsPvJDecCo6CNUzJiVCr/AJGHWH/5xCpHAAAAAElFTkSuQmCC";
@@ -7303,9 +8897,10 @@ var KASClient;
             Assets.videoPlayIcon = "iVBORw0KGgoAAAANSUhEUgAAAGwAAABsCAMAAAC4uKf/AAAAdVBMVEUAAAD////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////li2ZAAAAAJnRSTlMA+BdeKhDyvpoIxgTqoIPV245tMyM9Lt+liezkQwuTd81jS0mpqAbcCrAAAANjSURBVGje7VrZdqMwDLXNZpZQloadJE1a//8nTufFpgSE7ACTOc19hcO1rhbLFuSFF174xQhzq/4MkoYKQZsk+KytPCSb4BgHVNyBBvFxbaaON2IWDe/WY3LOpVhAcnZWoWInKhBwU/a4VSkVSND6Qes+IqGB6IOY490TmvDejc1yhTZcy4jKP0xlFc9uNvMJ8Zl9y/hU5nHfIAgvYoQy7fy7FXVpK0YItMPSbkc2HY6zpeVAR6uy9bjy5qcnYgaqEP/0bpRrcblAAiHS0dVgsxsgnFFpEqGVZO3QrIwgkdGh3xgy5odxmGg4u0iGMYnb6Q5DCR2tQjqUkqPqhlA4hJpbeSUULISj3eHitMEHIbkcWN7ALmKAgW2ehoheaNQUeWghnUjFoWO43SYq2+BPpCq/bGKIQuVbDaazei+bTEFcdqsVQ6l9WnDuG85c5bYUkFsaRqfDVlALVSepDP95r52XxP6bD1JKlOvPZA7l0oLENzBSOq6M6dkeW64nJvNkKClj+anjUqmhDCBDScnoUslrVJ0CyHBSVjKxZxoXZTpEhpNSfSyHdS4JRIaUsoX9H8hMBMmQUp7A8hBKn3YgGVLKm3wtnGrf5FMfJENK2cu1FxNPLdmqEJAMK+UF2tVqmRkwGVZKDkXIp9xckGRKSnijqaBgvMFkWCmvkFvkbm7DZFgpC7kaqFgxmAwrJYMKlgxVHybDStlLy6EPEZgMK2X4NGTbybhrgOwa+rsm9a7latdCvOsWs+vmuX1bcFVtwZ4ND9zKteu2cts3qZ1qUv99+73RwWL7I1O97JJkrcMgU4dBxDE3feyYe0Iccx13nQO8jTnAk3Sdq4lAKbTjpYvLcFFEC2KInKqo3vyiTA3b2v55rgB/XG5WJmRfg9U+17UtsYRCpXsh/SVQIirwHa/aiR8IhaTQiPlSf4hAWLn9eETBjvQHP3YgBojejUdaqaM5zG4KrZITaQ3r6tGwTrPU2eWoz65mt9yuGo8htefHLBAjtKdbT0borydgwIpHyMUd6IVn14L1Ydiz4prxy9ToOCQmsIyG4v/DuP8bVqRD1VrkITg1RSsY9+RRsNTd/ucTBeec7PBbjcKRA86L+JGsjDz2JtxHvTgnmyAsrLgK3iL6jegtqGKrCMkLL7zwe/EHCuOTkKLCajgAAAAASUVORK5CYII=";
             Assets.dropDownExpand = "iVBORw0KGgoAAAANSUhEUgAAACQAAAAYBAMAAABglkJ9AAAAElBMVEUAAAAAof8Aof8Apv8As/8Aof8yAeP/AAAABXRSTlMAgNEUCm0C0cYAAABqSURBVBjTbcuxCYBAEETREy3AxArEXKzAFk6Y/ltxL/nfwA0GdnjTfu/+PsuIaf9W11qxPafNfPRCSTFQsrYtKQZKelWDidJrKCs0hjBQg4lgIJgIJpKBZCAZSAaSgWAgmEgGkolkIBnoBY3bKrSdHeJoAAAAAElFTkSuQmCC";
             Assets.addImageGridAlbum = "iVBORw0KGgoAAAANSUhEUgAAANgAAADYCAMAAAC+/t3fAAAAbFBMVEUAAADh4+cAcPMAcPLh5Ofh5Oji5ejn7PHj7Ozh5Ojh5Ojh5Ojl8v/g5Ojh5Ofh4+fg4+fg4+fg4+ji4+jh5Ojg5Ojh4+nh5Ori5ejj4+jk5OoAdfEAdPQAcPIAb/MAb/EAb/EAdP/g4+cAb/FofRcCAAAAInRSTlMAgEDA9+VjERrbsI4J8uzLwLemnIZ8XFNONzAlLunPpZUL09duaQAAAyNJREFUeNrt28tu4kAQheFK0r7fjQ02ITfz/u843W2sMcQoI0Ua5VTOv2iH5aeqdtggn8qHrElKM4FkyqTJhly+KApTGNI6k4aR3C/viwm2or87tjCYoAtC2SqupqWkbrMHkLK2TqalKpZPjcFqW8H6+2YIRrlpb2ZWB6e62LoLYH/jmsG7WGCLd7PhSjYarz0IdIdZMa6wgd/Po4B3nB2xLFX+M/AaXk+okkuhnyD8vFxHv42h+HLPBL9fSwe/fLm4ev8+FCX5d2Mvtqhwi6jggs3FbhmLaLlhnaipW25Z6gYG+n1jq8iNLBXJ56ei/KRyGebJKcrfrUEy91C0iSKRE2XS2DMRVSWW1PizFlXVflalPVtRVWtJpRi/kKrKLMnIZHsQVT04E2FAEYYWYWgRhhZhaBGGFmFoEYYWYWgRhhZhaBGGFmFoEYYWYWgRhhZhaBGGFmFoEYYWYWgRhhZhaBGGFmFo/XfY87NsBw57P5/fZTNs2PPZtj0zbNijgz3KVoQRRhhhhK0jjDDCCCNsHWGEEUYYYesII4wwwghbRxhhhP1y2Ont6X6vDvb6dL+300+Ffbycv9XLxw+Fnc7f7PRDYWonpvaO6X0rEnYTYYQRRhhh6wgjjDDCCFtHGGGEEUbYOsIII4ywXwhT+6MdtT+z0vvDuHsRRhhhYBGGFmFoEYYWYWgRhhZhaBGGFmFoEYYWYWgRhhZhaBGGFmFoEYYWYWgRhhZhaBGGFmFoEYYWYWgRhtYMM/bIRFWZJRkp7dmKqlpLKiWxZy2qqi0pkcafqnKzaiSbbJEoKnKiTAb3CEVRoRMNkhv7SEVRqQWZ/PJUtIuRn9QyuU7U1C13KyrcyGJRUuwGVvgN7B1xJ0raOU0vrjxwfx9ERQdnCfLV+9EcRUFHc/Xfq/JMBdcs9stX3XwO4Gd2DG4nNPoJGvB7dpgVo6zaT74d8DrGu9mwl6v2ZvLcDvQ7SNRdAHu5aQxmsElDOFsUpmbyBePGKKtpKanb7AGkrK2TaamKZaswmKALQrlT3hcTbEWff7WtgP3LmyEfsiYpYXimTJps+DysP5WX8GBdowDwAAAAAElFTkSuQmCC";
-            Assets.addCameraImageEmptyGridAlbum = "iVBORw0KGgoAAAANSUhEUgAAAQIAAADtCAMAAABj9IuBAAAA+VBMVEUAAAAAcPEAcPMAcPMAcvUAcfIAb/IAb/IAcPIAcPIAcPIAb/EAef////////8AcPIAcPL///8AcPIAdvoAcfYAb/IAcPQAc/UAcPP///////////////8AcPL///////////8AcPL///8Aev8Ab/IAb/Lz+P4AcPIAcPIAcfMAcPIAcPL///////////////////////////////////9hpvcAb/H///9Ak/QfgfIQePJgpfZPm/Wcx/ktiPP4+/6Twvno8v3L4vwyi/Pb6v2KvfhGlvR2svdtrPbD3fu92fujy/oYfPKqz/qNvvglg/Oz1fp9tvhXofX5kUX7AAAANnRSTlMAgG5jMXr69Vy25rwJ7gfby3uwEhrtRiOPx6mVFKpqUzk5EA7UnP7ApVROheDRg3FHJdtfuZ0A/gD4AAAIF0lEQVR42uzcTW+qQBTG8aPIFOkkEJXChgUR49v+MX1LmjZdNO1C/f4f5g6D91Yj6QXrZmbOfy0LfswZnA10llxlwygRMCSRRMNsJelqjb3RDQzsZuSN6RpJ38j7Pyj4kn6dF8LoQo9+1yTGIRHNF1nPkLLFPBI4FE/oFxXh0VQZ1vcOFhZ0cYGoAdZTMrLpukYQwcUC0M0mZGyTGXQXGhRCL4ElGd1SLwRRXAQY6jkakOEN6vuYUPdifaXBQ3D6LGPqnKenwPg1UDXQs+BRx6SmM3wf+NsSqlBSt3yoZmRJM6h86tT4phoDCzaCuom+nXH3nWBN1rTuvhuMKjVD/xM2Nb0BMKIOyfoKi9LPVFL7VvW6sSg92StqXwZAGHc2/KmxAJBR+4YAIrKqCMCw4+/nZFXzjk81AbAgq1oASKh99eBYld7eqH1Q9ciqelAxARMwARMwARMwARMwARMwARMwARMwARMwARMwARMwARMwARMwARMwARMwARMwARMwARMwARMwARMwARMwARMwARMwgWkEctAqSSorCQaxQKtEPLCToBBonSisJIjQochGghSdSi0kWEI18ls0gmppIUEAoKRWlQACSwmG1KohEzABE7hJMLjTFe4SrHEoc5YgxqHILoK0l98eV3YjKG+Py3upeQS+wFntCc4TvmkEOXBdAiA3iyDA9QkQGEUQoir3+6et2hGs+qf5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";
-            Assets.addImageEmptyGridAlbum = "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";
-            Assets.removeImageGridAlbum = "iVBORw0KGgoAAAANSUhEUgAAAC0AAAAtCAMAAAANxBKoAAAApVBMVEUAAAAAAAD09PQODg79/f3V1dV4eHhJSUnCwsIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADQ0NAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABhYWFCQkIAAADw8PC9vb26urp+fn4yMjIAAAAAAAAAAAAAAAD5+fnn5+fd3d3Z2dmvr6+np6empqZUVFQjIyP///8KYF+8AAAANnRSTlOAAPSD/Nqnlc4FDH54MhB1WVZJPh8XetdtZFFPNyojHAidkkTxysmpjmZiQCb46eDdwr29mImeNObTAAABlklEQVRIx63V6XKCMBSG4aNWbcIiq/u+a+3ecv+X1oAhn2AC7Uzff0yecZI4HKjxl/5D83i+cNkvNJsHQ4uybM/hldqd9KnQ6GLUPFAWnSO9nsEWGjONfiJTJ17WzCdzvUVJA+uyXWhsw9hweaNnVJcHzfsm9L1q0bWp0gHJju3tvkWo85w01/KkTGrXItkgSZJ2C/hBPO/kQyj1RC2/JJIDJ/v8XpaZZtj1ZyI5cPNIMifTc0KPkgN31Zqf6YA0HFhls1QPScMPCqMo1RZpeKIwcoTmhMCBUSh0TDoOjALClaDOVb+2qJgv9IIQ7hn3jiZCuxqs5xuhmQ43Bxo+Fbpha3AXfxOapdrTYbrnFk+1A9xVWPEBJlEj1Rz6Q2HwFclCoUUjpQ85BoeOr/pCqvft25rQ7mYnXv5ensnU+kudMc51RPWNMU/GtbjnQrNTDbai28nGe9XaKU7NhV2FN+X57Q7N23Dup/3SMx0wakCjqW7z1tg1fNNYeLd7L674Xi4d38bPjkJY6EIscsLAn2ymM15e+gHQ4TOFzq9t5wAAAABJRU5ErkJggg==";
+            Assets.addCameraImageEmptyGridAlbum = "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";
+            Assets.addImageEmptyGridAlbum = "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";
+            Assets.removeImageGridAlbum = "iVBORw0KGgoAAAANSUhEUgAAABwAAAAcBAMAAACAI8KnAAAAJ1BMVEUAAAAAAADCwsIAAAAAAACYmJgAAAAAAAAAAAAAAAA6OjoAAAD///+kPjRLAAAADHRSTlOAAM5fF7V6bUs8kAnyGvPrAAAAnElEQVQY02MQRAFgrsjksnRLRxhXxIABCJgdodwGBjDggHA3M0CBNZhrAOMyg7gSDHDQCOQ6ILgsQC5Q7aIABgZWLZBqBhGgqM4hCGZwZJAEkjFnFJjOHAUyJjIIA0mmM4d0zigAGYYM4gwg1WfOHALRhQxiDGBpsCRDIhoXTTGaUWgWoTkD1ZFoXkDzIJr3MQMHEXQYAYsZ7CgAAG3zLuOOx7CuAAAAAElFTkSuQmCC";
+            Assets.gridAlbumImagePlaceHolder = "iVBORw0KGgoAAAANSUhEUgAAAJAAAACQCAMAAADQmBKKAAAAQlBMVEUAAADg5Ofq6ur////h5Ojg5Ojh5Ofg5Ofg5Ojg5Oji5Ofi5unj5un5+fng4+fr7O/l6Ovx8vP09fXi5en29vft7/HqBcC3AAAADXRSTlMAlhgG9PLj2ce/gkctAN5a7wAAAmFJREFUeNrs1stuwjAQRmGHhDs+Htvx+79qm8iitCxckIJnMWfN4tP8CON+Gq/D+Tjx4abjebiO7rndsKdb+2H3hzNeJro2XcZf5zkBSIjJf7wUgwCcHo50OwASfbeiAIfb/T6Lp/iulUVUbzSeIEffuZjhNLqlC9Dd8y0CLutgU/e97qtNy2gDiFeRwODcuFcxWB1tP7qrmgOtJ7ouiwWvpLBsdlaz2LrZ2R0heSUlOLoJvJpgcugCYSADGegxA7UyUCsDtTJQKwO1MlArA7UyUCsDtTJQKwO1MlArAz1VMi+Xy2agJLyVpI1AwpvJNqACEF4OoGwCysDsX24G8iYgIPg3CoCBDPQPUCoSiiJQYClHLaBALekARSCHAIgOUACprlkFSKDUz0QtoFCfiaQCVIDoZwF0fIfmTC3oAPlYPaLld6j+nSy+MyiFB0JK3d+yBIiixzWxJGpACdZECeirnTtGYRgGgihapTRYOLn/VQOK4DdLBhVrBjy/2+61tmCm55oiC9DP8x5TZABanuOoRJ9xNwhPJTq57wLhQYSHux1UeBDh4e4GVR5EeLibQbUH0fIM7n4QnkK0PNz9IDyVaHkQtoPwlKLlQdQNwlOJ8CBqBuEpRXgQtYJOPLWIT2lEnSA8MkRXFwjPpqgLhGdH1AjCsyXqBeHZEz3jt7Ddj3O7pwW/xxe756m6vCj+KSBVQKqAVAGpAlIFpApIFZAqIFVAqoBUAakCUgWkegbIbADg5TeRYDciYTezYTdEYjfVYjdm4zf3YzeI5DcZZTeq5Tc75jfM5jdd5zfu5zN/+AWNDiBPxVvT9AAAAABJRU5ErkJggg==";
             return Assets;
         }());
         UI.Assets = Assets;
@@ -7315,244 +8910,7 @@ var KASClient;
 (function (KASClient) {
     var UI;
     (function (UI) {
-        var KASAttachmentThumbnailView = (function () {
-            function KASAttachmentThumbnailView() {
-                this.documentDiv = null;
-                this.containerDiv = null;
-            }
-            KASAttachmentThumbnailView.prototype.getView = function (fileName, type, size) {
-                var accessibilityString = "";
-                var documentView = KASClient.UI.getElement("div", {
-                    "padding": "8px",
-                    "object-fit": "cover",
-                    "position": "relative",
-                    "box-shadow": "0px 0px 7px rgba(0, 0, 0, 0.3)"
-                });
-                var documentHeader = KASClient.UI.getElement("div", {
-                    "color": "#98a3af",
-                    "font-size": KASClient.UI.getScaledFontSize("12px"),
-                    "letter-spacing": "2"
-                });
-                var documentHeaderText = "";
-                switch (type) {
-                    case KASClient.KASAttachmentType.Audio:
-                        documentHeaderText = KASClient.Internal.getKASClientString("KASAttachmentAudioText");
-                        this.containerDiv = KASClient.UI.getDiv({ "width": "100%", "position": "relative" });
-                        break;
-                    case KASClient.KASAttachmentType.Document:
-                        documentHeaderText = KASClient.Internal.getKASClientString("KASAttachmentDocumentText");
-                        break;
-                    default:
-                        break;
-                }
-                documentHeader.innerHTML = documentHeaderText;
-                accessibilityString += documentHeaderText + ".";
-                var documentName = KASClient.UI.getLabel(fileName, {
-                    "color": "#006ff1",
-                    "font-size": KASClient.UI.getScaledFontSize("14px"),
-                    "padding-top": "4px",
-                    "padding-bottom": "4px",
-                    "white-space": "nowrap",
-                    "overflow": "hidden",
-                    "text-overflow": "ellipsis"
-                });
-                var fileExt = "";
-                if (!KASClient.isEmptyString(fileName)) {
-                    fileExt = fileName.split('.').pop().toLowerCase();
-                    accessibilityString += (fileName + ".");
-                }
-                var documentIcon = KASClient.UI.getBase64Image(KASClient.UI.getAttachmentIconBase64(fileExt), {
-                    "height": "12pt",
-                    "width": "12pt",
-                    "float": "left"
-                });
-                var sizeString = KASClient.formatSize(size);
-                var documentSize = KASClient.UI.getLabel(sizeString, {
-                    "color": "#6f7e8f",
-                    "font-size": KASClient.UI.getScaledFontSize("12px"),
-                    "padding-left": "3px",
-                    "float": "left"
-                });
-                accessibilityString += (".size - " + sizeString + ". ");
-                var documentInfo = KASClient.UI.getDiv({ "height": "20px" });
-                KASClient.UI.addElement(documentIcon, documentInfo);
-                KASClient.UI.addElement(documentSize, documentInfo);
-                KASClient.UI.addElement(documentHeader, documentView);
-                KASClient.UI.addElement(this.containerDiv, documentView);
-                KASClient.UI.addElement(documentName, documentView);
-                KASClient.UI.addElement(documentInfo, documentView);
-                if (this.onTappedCallback) {
-                    documentView.onclick = this.onTappedCallback;
-                    accessibilityString += (KASClient.Internal.getKASClientString("TapToOpenFormatText", documentHeaderText) + ".");
-                }
-                KASClient.UI.setAccessibilityBasic(documentHeader, true);
-                KASClient.UI.setAccessibilityBasic(documentIcon, true);
-                KASClient.UI.setAccessibilityBasic(documentSize, true);
-                KASClient.UI.setAccessibilityBasic(documentName, false, UI.KASFormAccessibilityRole.Text, accessibilityString);
-                return documentView;
-            };
-            return KASAttachmentThumbnailView;
-        }());
-        UI.KASAttachmentThumbnailView = KASAttachmentThumbnailView;
-    })(UI = KASClient.UI || (KASClient.UI = {}));
-})(KASClient || (KASClient = {}));
-var KASClient;
-(function (KASClient) {
-    var UI;
-    (function (UI) {
-        var State;
-        (function (State) {
-            State[State["AttachmentsAvailable"] = 0] = "AttachmentsAvailable";
-            State[State["AttachmentsDownloading"] = 1] = "AttachmentsDownloading";
-            State[State["AttachmentsDownloadFailed"] = 2] = "AttachmentsDownloadFailed";
-            State[State["AttachmentsNeverDownloaded"] = 3] = "AttachmentsNeverDownloaded";
-        })(State = UI.State || (UI.State = {}));
-        var KASAttachmentView = (function () {
-            function KASAttachmentView() {
-                this.view = null;
-                this.shouldShowRemoveButton = false;
-                this.tapEnabled = false;
-                this.defaultBlurColor = "rgba(0, 0, 0, 0.5)";
-                this.view = KASClient.UI.getElement("div", { "background": "white" });
-            }
-            KASAttachmentView.prototype.getView = function () {
-                return this.view;
-            };
-            // public setState(state: State) {
-            //     switch (state) {
-            //         case State.AttachmentsAvailable:
-            //             //this.populateView();
-            //             break;
-            //         case State.AttachmentsDownloading:
-            //             this.showLoadingIndicator();
-            //             break;
-            //         case State.AttachmentsNeverDownloaded:
-            //             this.showRetryButton();
-            //             break;
-            //         case State.AttachmentsDownloadFailed:
-            //             this.showRetryButton();
-            //             break;
-            //         default:
-            //             break;
-            //     }
-            // }
-            KASAttachmentView.prototype.showLoadingIndicator = function () {
-                this.addLoadingIndicatorToDiv(this.view);
-            };
-            KASAttachmentView.prototype.showRetryButton = function () {
-                this.addRetryButtonToDiv(this.view);
-            };
-            KASAttachmentView.prototype.addLoadingIndicatorToDiv = function (div, blurColor) {
-                if (blurColor === void 0) { blurColor = this.defaultBlurColor; }
-                var containerDiv = this.getStatusViewForState(State.AttachmentsDownloading);
-                KASClient.UI.removeElement(this.blurView);
-                this.blurView = this.getBlurViewWithDiv(containerDiv, blurColor);
-                this.blurView.onclick = function (event) { event.stopPropagation(); };
-                KASClient.UI.addElement(this.blurView, div);
-            };
-            KASAttachmentView.prototype.addRetryButtonToDiv = function (div, blurColor) {
-                if (blurColor === void 0) { blurColor = this.defaultBlurColor; }
-                var containerDiv = this.getStatusViewForState(State.AttachmentsDownloadFailed);
-                KASClient.UI.removeElement(this.blurView);
-                this.blurView = this.getBlurViewWithDiv(containerDiv, blurColor);
-                this.blurView.onclick = this.retryButtonCallback;
-                KASClient.UI.addElement(this.blurView, div);
-            };
-            KASAttachmentView.prototype.addTapToDownloadButtonToDiv = function (div, blurColor) {
-                if (blurColor === void 0) { blurColor = this.defaultBlurColor; }
-                var containerDiv = this.getStatusViewForState(State.AttachmentsNeverDownloaded);
-                KASClient.UI.removeElement(this.blurView);
-                this.blurView = this.getBlurViewWithDiv(containerDiv);
-                this.blurView.onclick = this.retryButtonCallback;
-                KASClient.UI.addElement(this.blurView, div);
-            };
-            KASAttachmentView.prototype.getStatusViewForState = function (state) {
-                var containerDiv = KASClient.UI.getDiv({ "width": "100px", "height": "25px", "margin": "auto", "background": "transparent" });
-                var statusIcon, statusText;
-                var accessibilityString = "";
-                switch (state) {
-                    case State.AttachmentsDownloading:
-                        statusIcon = KASClient.UI.getLoadingSpinner({ "margin": "0 auto" });
-                        accessibilityString += KASClient.Internal.getKASClientString("LoadingText");
-                        break;
-                    case State.AttachmentsNeverDownloaded:
-                        statusIcon = KASClient.UI.getElement("div", this.getLoadingViewAttributes(KASClient.UI.getBase64Src(UI.Assets.tapToDownloadDark)));
-                        statusText = KASClient.UI.getLabel(KASClient.Internal.getKASClientString("KASFormTapToDownloadText"), { "display": "block", "width": "100px", "font-size": KASClient.UI.getScaledFontSize("11px"), "text-align": "center", "color": "lightgray" });
-                        break;
-                    case State.AttachmentsDownloadFailed:
-                        statusIcon = KASClient.UI.getElement("div", this.getLoadingViewAttributes(KASClient.UI.getBase64Src(UI.Assets.retry)));
-                        statusText = KASClient.UI.getLabel(KASClient.Internal.getKASClientString("KASFormTapToRetryText"), { "display": "block", "width": "100px", "font-size": KASClient.UI.getScaledFontSize("11px"), "text-align": "center", "color": "lightgray" });
-                        break;
-                    default:
-                        break;
-                }
-                KASClient.UI.addElement(statusIcon, containerDiv);
-                if (statusText) {
-                    KASClient.UI.setAccessibilityBasic(statusText, true);
-                    accessibilityString += statusText.innerText;
-                    containerDiv.style.height = "40px";
-                    KASClient.UI.addElement(statusText, containerDiv);
-                }
-                KASClient.UI.setAccessibilityBasic(statusIcon, true);
-                KASClient.UI.setAccessibilityBasic(containerDiv, false, UI.KASFormAccessibilityRole.Text, accessibilityString);
-                return containerDiv;
-            };
-            KASAttachmentView.prototype.getBlurViewWithDiv = function (ele, blurColor) {
-                if (blurColor === void 0) { blurColor = this.defaultBlurColor; }
-                var blurView = KASClient.UI.getElement("div", this.getBlurViewAttributes());
-                blurView.style.background = blurColor;
-                KASClient.UI.addElement(ele, blurView);
-                return blurView;
-            };
-            KASAttachmentView.prototype.getLoadingViewAttributes = function (pictureUrl) {
-                return {
-                    "display": "block",
-                    "background": "transparent url('" + pictureUrl + "')",
-                    "margin": "0 auto",
-                    "width": "28px",
-                    "height": "28px",
-                    "background-size": "cover",
-                    "justify-content": "center",
-                    "align-items": "center"
-                };
-            };
-            KASAttachmentView.prototype.getLoadingViewAttributes1 = function () {
-                return {
-                    "position": "absolute",
-                    "display": "block",
-                    "margin": "auto",
-                    "top": "0",
-                    "left": "0",
-                    "bottom": "0",
-                    "right": "0",
-                    "width": "28px",
-                    "height": "28px",
-                    "background-size": "cover",
-                    "justify-content": "center",
-                    "align-items": "center"
-                };
-            };
-            KASAttachmentView.prototype.getBlurViewAttributes = function () {
-                return {
-                    "z-index": "2",
-                    "position": "absolute",
-                    "top": "0",
-                    "left": "0",
-                    "right": "0",
-                    "bottom": "0",
-                    "display": "flex"
-                };
-            };
-            return KASAttachmentView;
-        }());
-        UI.KASAttachmentView = KASAttachmentView;
-    })(UI = KASClient.UI || (KASClient.UI = {}));
-})(KASClient || (KASClient = {}));
-var KASClient;
-(function (KASClient) {
-    var UI;
-    (function (UI) {
-        var KASFormAccessibilityRole = (function () {
+        var KASFormAccessibilityRole = /** @class */ (function () {
             function KASFormAccessibilityRole() {
             }
             KASFormAccessibilityRole.None = "none";
@@ -7565,7 +8923,7 @@ var KASClient;
             return KASFormAccessibilityRole;
         }());
         UI.KASFormAccessibilityRole = KASFormAccessibilityRole;
-        var KASFormAccessibilityKey = (function () {
+        var KASFormAccessibilityKey = /** @class */ (function () {
             function KASFormAccessibilityKey() {
             }
             KASFormAccessibilityKey.Role = "role"; // Traits  of element.. value should be from KASFormAccessibilityRole
@@ -7601,7 +8959,7 @@ var KASClient;
 (function (KASClient) {
     var UI;
     (function (UI) {
-        var KASFormModule = (function () {
+        var KASFormModule = /** @class */ (function () {
             function KASFormModule() {
                 this.header = null;
                 this.footer = null;
@@ -7731,7 +9089,7 @@ var KASClient;
 (function (KASClient) {
     var UI;
     (function (UI) {
-        var KASFormRowsModule = (function (_super) {
+        var KASFormRowsModule = /** @class */ (function (_super) {
             __extends(KASFormRowsModule, _super);
             function KASFormRowsModule() {
                 var _this = _super !== null && _super.apply(this, arguments) || this;
@@ -7804,8 +9162,13 @@ var KASClient;
                 }
                 // Add line separator
                 UI.addCSS(rowView, this.getRowAttributes(i));
-                for (var key in this.accessibilityAttributes[i]) {
-                    UI.setAccessibilityAttribute(rowView, key, this.accessibilityAttributes[i][key]);
+                if (this.accessibilityAttributes[i] != undefined && this.accessibilityAttributes[i] != null) {
+                    for (var index = 0; index < rowView.children.length; index++) {
+                        UI.setAccessibilityBasic(rowView.children.item(index), true);
+                    }
+                    for (var key in this.accessibilityAttributes[i]) {
+                        UI.setAccessibilityAttribute(rowView, key, this.accessibilityAttributes[i][key]);
+                    }
                 }
                 return rowView;
             };
@@ -7860,7 +9223,7 @@ var KASClient;
 (function (KASClient) {
     var UI;
     (function (UI) {
-        var KASFormCountImageTitleActionModule = (function (_super) {
+        var KASFormCountImageTitleActionModule = /** @class */ (function (_super) {
             __extends(KASFormCountImageTitleActionModule, _super);
             function KASFormCountImageTitleActionModule() {
                 var _this = _super !== null && _super.apply(this, arguments) || this;
@@ -7963,7 +9326,7 @@ var KASClient;
 (function (KASClient) {
     var UI;
     (function (UI) {
-        var KASFormDetailsModule = (function () {
+        var KASFormDetailsModule = /** @class */ (function () {
             function KASFormDetailsModule() {
                 this.coverImagePath = null;
                 this.creator = null;
@@ -8122,8 +9485,8 @@ var KASClient;
             KASFormDetailsModule.prototype.likeClickPreProcessing = function (likeIconImage, likeIconDiv, likeTitleDiv, likeCountDiv, likeDiv) {
                 var likeSrc;
                 var likeTextBackground = GREY_BACKGROUND_COLOR;
+                var likeFontColor = this.hideLikesDetails && this.likes > 0 ? TEXT_PRIMARY_COLOR : BLUE_COLOR;
                 var likeTextLeftPadding = "5pt";
-                UI.setAccessibilityAttribute(likeDiv, UI.KASFormAccessibilityKey.Hidden, "true");
                 if (this.didILike && this.likes > 0) {
                     this.likes--;
                     this.didILike = false;
@@ -8131,17 +9494,33 @@ var KASClient;
                     if (this.likes == 0) {
                         likeTextBackground = CLEAR_COLOR;
                         likeTextLeftPadding = "0";
+                        likeFontColor = BLUE_COLOR;
                     }
                 }
                 else {
                     this.likes++;
                     this.didILike = true;
                     likeSrc = UI.Assets.unlike;
+                    if (this.hideLikesDetails) {
+                        likeFontColor = TEXT_PRIMARY_COLOR;
+                    }
                 }
                 likeIconImage.src = UI.getBase64Src(likeSrc);
                 likeTitleDiv.innerHTML = "" + this.likes;
-                UI.setAccessibilityBasic(likeDiv, false, UI.KASFormAccessibilityRole.Button, KASClient.Internal.getKASClientString(this.likes == 1 ? "KASFormPageLikeCount" : "KASFormPageLikesCount", this.likes));
+                if (this.likes == 0) {
+                    UI.setAccessibilityBasic(likeCountDiv, true);
+                }
+                else {
+                    UI.setAccessibilityBasic(likeCountDiv, false, UI.KASFormAccessibilityRole.Button, KASClient.Internal.getKASClientString(this.likes == 1 ? "KASFormPageLikeCount" : "KASFormPageLikesCount", this.likes));
+                }
+                if (this.didILike) {
+                    UI.setAccessibilityBasic(likeIconImage, false, UI.KASFormAccessibilityRole.Button, KASClient.Internal.getKASClientString("KASFormPageUnLikes"));
+                }
+                else {
+                    UI.setAccessibilityBasic(likeIconImage, false, UI.KASFormAccessibilityRole.Button, KASClient.Internal.getKASClientString("KASFormPageNoLikes"));
+                }
                 UI.setText(likeTitleDiv, "" + this.getLikesOrCommentsCountString(this.likes, "like"));
+                likeTitleDiv.style.color = likeFontColor;
                 if (!this.hideLikesDetails) {
                     likeCountDiv.style.backgroundColor = likeTextBackground;
                     likeCountDiv.style.paddingLeft = likeTextLeftPadding;
@@ -8154,10 +9533,22 @@ var KASClient;
                 if (!this.hideLikes) {
                     var likeIconImage = UI.getBase64Image((this.didILike ? UI.Assets.unlike : UI.Assets.like), this.getLikeIconAttributes());
                     var likeIconDiv = UI.getHorizontalDiv([UI.getSpace("10pt"), likeIconImage, UI.getSpace("5pt")], this.getLikeIconBackgroundAttributes());
-                    var likeTitleDiv = UI.getLabel("" + this.getLikesOrCommentsCountString(this.likes, "like"), this.getIconTitleAttributes());
+                    var likeTitleDiv = UI.getLabel("" + this.getLikesOrCommentsCountString(this.likes, "like"), this.getLikeTitleAttributes());
+                    UI.setAccessibilityBasic(likeTitleDiv, true);
                     var likeCountDiv = UI.getHorizontalDiv([likeTitleDiv, UI.getSpace("10pt")], this.getLikeTextBackgroundAttributes());
                     var likeDiv = UI.getHorizontalDiv([likeIconDiv, likeCountDiv], this.getLikeParentBackgroundAttributes());
-                    UI.setAccessibilityBasic(likeDiv, false, UI.KASFormAccessibilityRole.Button, KASClient.Internal.getKASClientString(this.likes == 1 ? "KASFormPageLikeCount" : "KASFormPageLikesCount", this.likes));
+                    if (this.likes == 0) {
+                        UI.setAccessibilityBasic(likeCountDiv, true);
+                    }
+                    else {
+                        UI.setAccessibilityBasic(likeCountDiv, false, UI.KASFormAccessibilityRole.Button, KASClient.Internal.getKASClientString(this.likes == 1 ? "KASFormPageLikeCount" : "KASFormPageLikesCount", this.likes));
+                    }
+                    if (this.didILike) {
+                        UI.setAccessibilityBasic(likeIconImage, false, UI.KASFormAccessibilityRole.Button, KASClient.Internal.getKASClientString("KASFormPageUnLikes"));
+                    }
+                    else {
+                        UI.setAccessibilityBasic(likeIconImage, false, UI.KASFormAccessibilityRole.Button, KASClient.Internal.getKASClientString("KASFormPageNoLikes"));
+                    }
                     UI.addClickEvent(likeIconDiv, function () {
                         _this.likeClickPreProcessing(likeIconImage, likeIconDiv, likeTitleDiv, likeCountDiv, likeDiv);
                     });
@@ -8184,7 +9575,9 @@ var KASClient;
                 }
                 if (!this.hideComments) {
                     var commentIconImage = UI.getBase64Image((this.didIComment ? UI.Assets.mycomment : UI.Assets.comment), this.getCommentIconAttributes());
-                    var commentTitleDiv = UI.getLabel("" + this.getLikesOrCommentsCountString(this.comments, "comment"), this.getIconTitleAttributes());
+                    UI.setAccessibilityBasic(commentIconImage, true);
+                    var commentTitleDiv = UI.getLabel("" + this.getLikesOrCommentsCountString(this.comments, "comment"), this.getCommentTitleAttributes());
+                    UI.setAccessibilityBasic(commentTitleDiv, true);
                     var commentDiv = UI.getHorizontalDiv([UI.getSpace("10pt"), commentIconImage, UI.getSpace("5pt"), commentTitleDiv, UI.getSpace("10pt")], this.getCommentBackgroundAttributes());
                     var chevronIcon = UI.getChevronIcon();
                     if (this.showAllCommentsAction != null) {
@@ -8400,11 +9793,18 @@ var KASClient;
                 attributes["overflow"] = "hidden";
                 return attributes;
             };
-            KASFormDetailsModule.prototype.getIconTitleAttributes = function () {
+            KASFormDetailsModule.prototype.getLikeTitleAttributes = function () {
                 var attributes = {};
                 attributes["font-size"] = UI.getScaledFontSize("12pt");
                 attributes["font-weight"] = MEDIUM_FONT_WEIGHT;
-                attributes["color"] = this.hideLikesDetails ? TEXT_PRIMARY_COLOR : BLUE_COLOR;
+                attributes["color"] = this.hideLikesDetails && this.likes > 0 ? TEXT_PRIMARY_COLOR : BLUE_COLOR;
+                return attributes;
+            };
+            KASFormDetailsModule.prototype.getCommentTitleAttributes = function () {
+                var attributes = {};
+                attributes["font-size"] = UI.getScaledFontSize("12pt");
+                attributes["font-weight"] = MEDIUM_FONT_WEIGHT;
+                attributes["color"] = BLUE_COLOR;
                 return attributes;
             };
             return KASFormDetailsModule;
@@ -8412,122 +9812,358 @@ var KASClient;
         UI.KASFormDetailsModule = KASFormDetailsModule;
     })(UI = KASClient.UI || (KASClient.UI = {}));
 })(KASClient || (KASClient = {}));
+/// <reference path="./KASFormModule.ts" />
 var KASClient;
 (function (KASClient) {
     var UI;
     (function (UI) {
-        var KASFormEmptyModule = (function () {
-            function KASFormEmptyModule() {
-                this.icon = UI.Assets.emptyState;
-                this.title = null;
-                this.subtitle = null;
-                this.actionTitle = null;
-                this.action = null;
-                this.subActionTitle = null;
-                this.subAction = null;
-                this.view = null;
+        /**
+         * KASFormRowsRecyclerModule renders a list view.
+         * The difference between KASFormRowsModule and this is that not all the rows
+         * are rendered at once. This control only renders the rows that are currently
+         * visible in the viewport and in addition to that preloads a few rows above
+         * and below the viewport to simulate smooth scrolling.
+         *
+         * This control expects the following data at render time to function:
+         *  - The number of rows (mandatory)
+         *  - The height of each row (mandatory; rows can be of different heights but each row's height should be constant throughout)
+         *
+         * The following is the DOM structure created by this control:
+         *  __________________________
+         * |                          |
+         * |                          |
+         * |        Top Space         |
+         * |--------------------------|
+         * |                          |
+         * |   Preloaded top blocks   |
+         * |                          |
+         * |--------------------------|
+         * |    Current block in      |
+         * |        viewport          |
+         * |--------------------------|
+         * |                          |
+         * | Preloaded bottom blocks  |
+         * |                          |
+         * |--------------------------|
+         * |      Bottom space        |
+         * |                          |
+         * |__________________________|
+         *
+         * A block is a set a rows. All rendering decisions are based at a block
+         * level instead of at a row level. Block level changes occur comparatively
+         * at a lower frequency than when processing at a row level. Since scroll
+         * events are fired at very short intervals, DOM changes resulting from
+         * these scroll events are smoother when done at block level rather than
+         * at a row level.
+         *
+         * Top and Bottom space blocks are added to fill up the empty space for
+         * the rows that are not rendered above and below the currently loaded
+         * blocks. When the scroll position is at the start, the top space will
+         * be of zero height and when the scroll position is at the end, the
+         * bottom space will be of zero height.
+         *
+         * On change in scroll position, we determine the current block in viewport
+         * and if we detect a change in the current block, we will compute the
+         * list of blocks to be rendered. This list is compared with the currently
+         * rendered block list and the blocks to be added and removed are determined.
+         * These changes are then made to the DOM.
+         *
+         * In the current implementation, the ROW_BLOCK_SIZE, which determines the
+         * number of rows in each block, is hard coded to 5. Also the
+         * PRELOAD_BLOCK_COUNT is fixed at 2 (two blocks will be preloaded above
+         * and two below the current block). Future upgrades to this control should
+         * consider determining these numbers dynamically based on view port size and
+         * other device characteristics.
+         *
+         * Few other areas of improvement will be defining a construct for a row,
+         * accomodating rows that contain dynamic content which affect its height.
+         *
+         */
+        var KASFormRowsRecyclerModule = /** @class */ (function (_super) {
+            __extends(KASFormRowsRecyclerModule, _super);
+            function KASFormRowsRecyclerModule() {
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this.PRELOAD_BLOCK_COUNT = 2;
+                _this.ROW_BLOCK_SIZE = 5;
+                _this.rowHeights = [];
+                _this.blockHeights = [];
+                _this.currentlyRenderedBlocks = [];
+                _this.moduleTopOffset = -1;
+                return _this;
             }
-            KASFormEmptyModule.prototype.getView = function () {
-                if (!this.view) {
-                    var views = [];
-                    if (this.icon) {
-                        views.push(this.getIconDiv());
-                        views.push(UI.getSpace("30pt"));
-                    }
-                    views.push(this.getTitleDiv());
-                    views.push(this.getSubtitleDiv());
-                    if (this.actionTitle) {
-                        views.push(UI.getSpace("50pt"));
-                        views.push(this.getActionDiv());
-                    }
-                    if (this.subActionTitle) {
-                        views.push(UI.getSpace("20pt"));
-                        views.push(this.getSubActionDiv());
-                    }
-                    this.view = UI.getVerticalDiv(views, this.getEmptyModuleAttributes());
-                }
+            KASFormRowsRecyclerModule.prototype.getView = function () {
+                this.setupRowsAndBlocks();
+                document.addEventListener('scroll', this.viewScrolled.bind(this));
+                this.topSpaceBlock = UI.getDiv({ "width": "10px", "height": "0px" });
+                this.blockContentContainer = UI.getDiv();
+                this.bottomSpaceBlock = UI.getDiv({ "width": "10px", "height": "0px" });
+                this.updateRowBlocks();
+                this.contentView = UI.getVerticalDiv([this.topSpaceBlock, this.blockContentContainer, this.bottomSpaceBlock]);
+                this.view = _super.prototype.getView.call(this);
                 return this.view;
             };
-            KASFormEmptyModule.prototype.recreateView = function () {
-                this.view = null;
-                return this.getView();
-            };
-            KASFormEmptyModule.prototype.getIconDiv = function () {
-                if (this.icon) {
-                    return UI.getBase64Image(this.icon, this.getIconAttributes());
+            KASFormRowsRecyclerModule.prototype.setupRowsAndBlocks = function () {
+                this.totalRowCount = this.getNumberOfRows();
+                for (var rowIndex = 0; rowIndex < this.totalRowCount; rowIndex++) {
+                    this.rowHeights.push(this.getRowHeight(rowIndex) + 18); // '18px' is to compensate for the padding and borders
                 }
-                return null;
-            };
-            KASFormEmptyModule.prototype.getTitleDiv = function () {
-                if (this.title) {
-                    return UI.getLabel(this.title, this.getTitleAttributes());
+                this.currentRowBlockIndex = 0;
+                this.totalRowBlockCount = Math.ceil(this.totalRowCount / this.ROW_BLOCK_SIZE);
+                for (var blockIndex = 0; blockIndex < this.totalRowBlockCount; blockIndex++) {
+                    this.blockHeights.push(this.getBlockHeight(blockIndex));
                 }
-                return null;
             };
-            KASFormEmptyModule.prototype.getSubtitleDiv = function () {
-                if (this.subtitle) {
-                    return UI.getLabel(this.subtitle, this.getSubtitleAttributes());
+            KASFormRowsRecyclerModule.prototype.viewScrolled = function () {
+                var scrollElement = document.scrollingElement ? document.scrollingElement : document.body;
+                if (this.moduleTopOffset == -1) {
+                    var moduleTop = this.view.getBoundingClientRect().top;
+                    var documentTop = scrollElement.getBoundingClientRect().top;
+                    if (moduleTop && documentTop) {
+                        this.moduleTopOffset = moduleTop - documentTop;
+                    }
                 }
-                return null;
+                this.computeCurrentRowBlockIndex(scrollElement.scrollTop);
             };
-            KASFormEmptyModule.prototype.getActionDiv = function () {
-                if (this.actionTitle) {
-                    var actionDiv = UI.getLabel(this.actionTitle, this.getActionAttributes());
-                    UI.addClickEvent(actionDiv, this.action);
-                    return actionDiv;
+            KASFormRowsRecyclerModule.prototype.computeCurrentRowBlockIndex = function (scrollPos) {
+                var newRowBlockIndex;
+                var adjustedScrollPos = scrollPos;
+                if (this.moduleTopOffset != -1) {
+                    adjustedScrollPos = scrollPos - this.moduleTopOffset;
                 }
-                return null;
-            };
-            KASFormEmptyModule.prototype.getSubActionDiv = function () {
-                if (this.subActionTitle) {
-                    var subActionDiv = UI.getLabel(this.subActionTitle, this.getSubtitleAttributes());
-                    UI.addClickEvent(subActionDiv, this.subAction);
-                    return subActionDiv;
+                if (adjustedScrollPos <= 0) {
+                    newRowBlockIndex = 0;
                 }
-                return null;
+                else {
+                    newRowBlockIndex = 0;
+                    for (var li = 0; li < this.totalRowBlockCount && adjustedScrollPos > 0; li++) {
+                        adjustedScrollPos -= this.getBlockHeight(newRowBlockIndex);
+                        if (adjustedScrollPos >= 0) {
+                            newRowBlockIndex++;
+                        }
+                    }
+                }
+                if (newRowBlockIndex != this.currentRowBlockIndex &&
+                    newRowBlockIndex < this.totalRowBlockCount - this.PRELOAD_BLOCK_COUNT) {
+                    var scrollDirection = (newRowBlockIndex > this.currentRowBlockIndex) ? ScrollDirection.DOWN : ScrollDirection.UP;
+                    this.currentRowBlockIndex = newRowBlockIndex;
+                    this.updateRowBlocks(scrollDirection);
+                }
             };
-            KASFormEmptyModule.prototype.getEmptyModuleAttributes = function () {
+            KASFormRowsRecyclerModule.prototype.getBlocksToRender = function () {
+                var offsets = [];
+                for (var offsetIndex = (-1 * this.PRELOAD_BLOCK_COUNT); offsetIndex <= this.PRELOAD_BLOCK_COUNT; offsetIndex++) {
+                    offsets.push(offsetIndex);
+                }
+                var blocksToRender = [];
+                for (var i = 0; i < offsets.length; i++) {
+                    var offsetBlockIndex = this.currentRowBlockIndex + offsets[i];
+                    if (offsetBlockIndex >= 0 && offsetBlockIndex < this.totalRowBlockCount) {
+                        blocksToRender.push(offsetBlockIndex);
+                    }
+                }
+                return blocksToRender;
+            };
+            KASFormRowsRecyclerModule.prototype.updateRowBlocks = function (scrollDirection) {
+                if (scrollDirection === void 0) { scrollDirection = ScrollDirection.DOWN; }
+                var blocksToRender = this.getBlocksToRender();
+                var newBlocks = blocksToRender.slice();
+                var oldBlocks = [];
+                for (var existingBlockIndex = 0; existingBlockIndex < this.currentlyRenderedBlocks.length; existingBlockIndex++) {
+                    var indexToRemove = newBlocks.indexOf(this.currentlyRenderedBlocks[existingBlockIndex]);
+                    if (indexToRemove != -1) {
+                        newBlocks = KASClient.removeElementFromArray(newBlocks, indexToRemove);
+                    }
+                    else {
+                        oldBlocks.push(this.currentlyRenderedBlocks[existingBlockIndex]);
+                    }
+                }
+                this.currentlyRenderedBlocks = blocksToRender.slice();
+                if (newBlocks.length > 0) {
+                    this.updateSpaceBlocks();
+                    this.removeRowBlocks(oldBlocks);
+                    for (var newBlockIterator = 0; newBlockIterator < newBlocks.length; newBlockIterator++) {
+                        var blockToRender = newBlocks[newBlockIterator];
+                        var firstRowOfBlock = blockToRender * this.ROW_BLOCK_SIZE;
+                        var block = UI.getDiv();
+                        UI.setId(block, "" + blockToRender);
+                        for (var rowIndex = firstRowOfBlock; rowIndex < (firstRowOfBlock + this.ROW_BLOCK_SIZE) && rowIndex < this.totalRowCount; rowIndex++) {
+                            UI.addElement(this.createRow(rowIndex), block);
+                        }
+                        if (scrollDirection == ScrollDirection.DOWN) {
+                            this.blockContentContainer.appendChild(block);
+                        }
+                        else {
+                            this.blockContentContainer.insertBefore(block, this.blockContentContainer.childNodes[newBlockIterator]);
+                        }
+                    }
+                }
+            };
+            KASFormRowsRecyclerModule.prototype.updateSpaceBlocks = function () {
+                var topSpace = 0;
+                for (var topIndex = 0; topIndex < this.currentRowBlockIndex - this.PRELOAD_BLOCK_COUNT; topIndex++) {
+                    topSpace += this.getBlockHeight(topIndex);
+                }
+                var bottomSpace = 0;
+                for (var bottomIndex = (((this.currentRowBlockIndex + 1) + this.PRELOAD_BLOCK_COUNT) * this.ROW_BLOCK_SIZE); bottomIndex < this.totalRowCount; bottomIndex++) {
+                    bottomSpace += this.getRowHeight(bottomIndex);
+                }
+                UI.addCSS(this.topSpaceBlock, { "height": topSpace + "px" });
+                UI.addCSS(this.bottomSpaceBlock, { "height": bottomSpace + "px" });
+            };
+            KASFormRowsRecyclerModule.prototype.removeRowBlocks = function (blocksIndexesToRemove) {
+                var blocksToRemove = [];
+                for (var blockIterator = 0; blockIterator < this.blockContentContainer.children.length; blockIterator++) {
+                    var blockId = parseInt(this.blockContentContainer.children[blockIterator].getAttribute("id"));
+                    if (blocksIndexesToRemove.indexOf(blockId) != -1) {
+                        blocksToRemove.push(this.blockContentContainer.children[blockIterator]);
+                    }
+                }
+                for (var removeIndex = 0; removeIndex < blocksToRemove.length; removeIndex++) {
+                    var blockToRemove = blocksToRemove[removeIndex];
+                    var blockId = parseInt(blockToRemove.getAttribute("id"));
+                    var firstRowOfBlock = blockId * this.ROW_BLOCK_SIZE;
+                    for (var rowIndex = firstRowOfBlock; rowIndex < (firstRowOfBlock + this.ROW_BLOCK_SIZE) && rowIndex < this.totalRowCount; rowIndex++) {
+                        this.deleteRowView(rowIndex);
+                    }
+                    this.blockContentContainer.removeChild(blockToRemove);
+                }
+            };
+            KASFormRowsRecyclerModule.prototype.createRow = function (i) {
+                // Get content
+                var rowView = this.getRowView(i);
+                // Add line separator
+                UI.addCSS(rowView, this.getRowAttributes(i));
+                return rowView;
+            };
+            KASFormRowsRecyclerModule.prototype.getNumberOfRows = function () {
+                console.assert(false);
+                return 0; // Should be implemented by the derived classes
+            };
+            KASFormRowsRecyclerModule.prototype.getRowView = function (i) {
+                console.assert(false);
+                return null; // Should be implemented by derived classes
+            };
+            KASFormRowsRecyclerModule.prototype.deleteRowView = function (i) {
+                //Should be implemented by derived classes if some handling needs to done on view removal
+            };
+            KASFormRowsRecyclerModule.prototype.getRowHeight = function (i) {
+                console.assert(false);
+                return -1; // Should be implemented by derived classes
+            };
+            KASFormRowsRecyclerModule.prototype.getBlockHeight = function (blockIndex) {
+                if (this.blockHeights[blockIndex]) {
+                    return this.blockHeights[blockIndex];
+                }
+                var blockHeight = 0;
+                var firstRowOfBlock = blockIndex * this.ROW_BLOCK_SIZE;
+                for (var rowIndex = firstRowOfBlock; rowIndex < (firstRowOfBlock + this.ROW_BLOCK_SIZE) && rowIndex < this.totalRowCount; rowIndex++) {
+                    blockHeight += this.rowHeights[rowIndex];
+                }
+                return blockHeight;
+            };
+            KASFormRowsRecyclerModule.prototype.getRowAttributes = function (i) {
                 var attributes = {};
-                attributes["display"] = "flex";
-                attributes["flex-direction"] = "column";
-                attributes["justify-content"] = "center";
-                attributes["align-items"] = "center";
-                attributes["padding"] = "70pt 0 0 0";
+                attributes["padding"] = "8pt 12pt 8pt 12pt";
+                if (this.getNumberOfRows() > i + 1) {
+                    attributes["border-bottom"] = LINE_SEPARATOR_ATTRIBUTE;
+                }
                 return attributes;
             };
-            KASFormEmptyModule.prototype.getIconAttributes = function () {
+            return KASFormRowsRecyclerModule;
+        }(UI.KASFormModule));
+        UI.KASFormRowsRecyclerModule = KASFormRowsRecyclerModule;
+        var ScrollDirection;
+        (function (ScrollDirection) {
+            ScrollDirection[ScrollDirection["DOWN"] = 0] = "DOWN";
+            ScrollDirection[ScrollDirection["UP"] = 1] = "UP";
+        })(ScrollDirection = UI.ScrollDirection || (UI.ScrollDirection = {}));
+        ;
+    })(UI = KASClient.UI || (KASClient.UI = {}));
+})(KASClient || (KASClient = {}));
+/// <reference path="./KASFormRowsRecyclerModule.ts" />
+var KASClient;
+(function (KASClient) {
+    var UI;
+    (function (UI) {
+        /**
+         * KASFormImageResponseAggregationRecyclerModule provides a view for every
+         * image list type response in the aggregated view which can be accessed
+         * from the Survey summary.
+         *
+         * Each row displays the responder's name, profile pic and the time at which the
+         * response was sent. The list of images sent as part of the response
+         * are displayed in a grid form along with the user info.
+         */
+        var KASFormImageResponseAggregationRecyclerModule = /** @class */ (function (_super) {
+            __extends(KASFormImageResponseAggregationRecyclerModule, _super);
+            function KASFormImageResponseAggregationRecyclerModule() {
+                var _this = _super !== null && _super.apply(this, arguments) || this;
+                _this.userInfo = null;
+                _this.timestamps = null;
+                _this.images = null;
+                _this.albumViewCache = {};
+                return _this;
+            }
+            KASFormImageResponseAggregationRecyclerModule.prototype.getNumberOfRows = function () {
+                if (this.userInfo == null) {
+                    return 0;
+                }
+                return this.userInfo.length;
+            };
+            KASFormImageResponseAggregationRecyclerModule.prototype.getRowView = function (i) {
+                var profilePic = UI.getProfilePic(this.userInfo[i]);
+                var titleLabel = UI.getLabel(this.userInfo[i].name, this.getTitleAttributes());
+                var profileDetailsView;
+                if (this.timestamps != null && this.timestamps.length > i) {
+                    var subTitleLabel = UI.getLabel(this.timestamps[i], this.getSubTitleAttributes());
+                    profileDetailsView = UI.getHorizontalDiv([profilePic, UI.getSpace("8px"), UI.getVerticalDiv([titleLabel, subTitleLabel], UI.getCoverRestOfTheSpaceAttributes())]);
+                }
+                else {
+                    profileDetailsView = UI.getHorizontalDiv([profilePic, UI.getSpace("8px"), UI.getVerticalDiv([titleLabel], UI.getCoverRestOfTheSpaceAttributes())]);
+                }
+                var albumView = new UI.KASImageGridAlbumView("" /* header */, this.images[i] /* imageAttachments */, true /* previewMode */, null /* props */, null /* onChangeCallback*/);
+                this.albumViewCache[i] = albumView;
+                var rowView = UI.getVerticalDiv([profileDetailsView, UI.getSpace("4px"), albumView.getView()]);
+                return rowView;
+            };
+            KASFormImageResponseAggregationRecyclerModule.prototype.deleteRowView = function (i) {
+                if (this.albumViewCache[i]) {
+                    var albumView = this.albumViewCache[i];
+                    albumView.prepareForDOMRemoval();
+                    delete this.albumViewCache[i];
+                }
+            };
+            KASFormImageResponseAggregationRecyclerModule.prototype.getRowHeight = function (i) {
+                // for Carousel, 
+                // return 156;
+                // for Grid,
+                var profileInfoHeight = 44;
+                var spacerHeight = 4;
+                var screenWidth = window.innerWidth || document.documentElement.clientWidth;
+                var availableWidth = screenWidth - 43;
+                // Why "43"? 24pt(32px) padding for each row and 8pt(11px) margin for the page.
+                // Ideally this shouldn't be present here but we need the width to calculate the height.
+                var gridColCount = Math.floor(availableWidth / 84); // Every image in Image Grid Album is of size 84px X 84px.
+                var gridRowCount = Math.ceil(this.images[i].length / gridColCount);
+                return profileInfoHeight + spacerHeight + (gridRowCount * 84); // Every image in Image Grid Album is of size 84px X 84px.
+            };
+            KASFormImageResponseAggregationRecyclerModule.prototype.getTitleAttributes = function () {
                 var attributes = {};
-                attributes["width"] = "224pt";
-                attributes["height"] = "170pt";
+                attributes["font-size"] = UI.getScaledFontSize("12pt");
+                attributes["font-weight"] = MEDIUM_FONT_WEIGHT;
+                attributes["color"] = TEXT_PRIMARY_COLOR;
                 return attributes;
             };
-            KASFormEmptyModule.prototype.getTitleAttributes = function () {
+            KASFormImageResponseAggregationRecyclerModule.prototype.getSubTitleAttributes = function () {
                 var attributes = {};
-                attributes["text-align"] = "center";
-                attributes["font-size"] = UI.getScaledFontSize("14pt");
-                attributes["font-weight"] = SEMIBOLD_FONT_WEIGHT;
-                attributes["color"] = "#6f7e8f";
-                return attributes;
-            };
-            KASFormEmptyModule.prototype.getSubtitleAttributes = function () {
-                var attributes = {};
-                attributes["text-align"] = "center";
                 attributes["font-size"] = UI.getScaledFontSize("10pt");
                 attributes["font-weight"] = REGULAR_FONT_WEIGHT;
-                attributes["color"] = "#5c6a7c";
+                attributes["color"] = TEXT_SECONDARY_COLOR;
                 return attributes;
             };
-            KASFormEmptyModule.prototype.getActionAttributes = function () {
-                var attributes = {};
-                attributes["text-align"] = "center";
-                attributes["font-size"] = UI.getScaledFontSize("14pt");
-                attributes["font-weight"] = SEMIBOLD_FONT_WEIGHT;
-                attributes["color"] = BLUE_COLOR;
-                return attributes;
-            };
-            return KASFormEmptyModule;
-        }());
-        UI.KASFormEmptyModule = KASFormEmptyModule;
+            return KASFormImageResponseAggregationRecyclerModule;
+        }(UI.KASFormRowsRecyclerModule));
+        UI.KASFormImageResponseAggregationRecyclerModule = KASFormImageResponseAggregationRecyclerModule;
     })(UI = KASClient.UI || (KASClient.UI = {}));
 })(KASClient || (KASClient = {}));
 /// <reference path="./KASFormRowsModule.ts" />
@@ -8535,7 +10171,7 @@ var KASClient;
 (function (KASClient) {
     var UI;
     (function (UI) {
-        var KASFormTitleSubtitleActionModule = (function (_super) {
+        var KASFormTitleSubtitleActionModule = /** @class */ (function (_super) {
             __extends(KASFormTitleSubtitleActionModule, _super);
             function KASFormTitleSubtitleActionModule() {
                 var _this = _super !== null && _super.apply(this, arguments) || this;
@@ -8546,6 +10182,7 @@ var KASClient;
                 _this.titleColors = null;
                 _this.boldTitle = true;
                 _this.subtitlePrimary = false;
+                _this.cssToOverride = {};
                 return _this;
             }
             KASFormTitleSubtitleActionModule.prototype.getNumberOfRows = function () {
@@ -8565,6 +10202,12 @@ var KASClient;
                 }
                 var rowItems = [];
                 var titleLabel = UI.getLabel(this.titles[i], this.getTitleAttributes(i));
+                if (this.cssToOverride.hasOwnProperty("titles")) {
+                    var titlesCss = this.cssToOverride["titles"];
+                    if (titlesCss.hasOwnProperty(i.toString())) {
+                        KASClient.UI.addCSS(titleLabel, titlesCss[i.toString()]);
+                    }
+                }
                 rowItems.push(titleLabel);
                 this.allTitleLabels[i] = titleLabel;
                 if (this.subtitles && this.subtitles.length > i && this.subtitles[i]) {
@@ -8585,10 +10228,16 @@ var KASClient;
                             attachmentsList.push(KASClient.KASImageAttachment.fromJSON(attachmentsListJSONArray[i]));
                         }
                         var gridView = new UI.KASImageGridAlbumView("", attachmentsList, true, null, null);
-                        subtitleLabel = gridView.getInputView();
+                        subtitleLabel = gridView.getView();
                     }
                     else {
                         subtitleLabel = UI.getLabel(this.subtitles[i], this.getSubtitleAttributes(i));
+                    }
+                    if (this.cssToOverride.hasOwnProperty("subtitles")) {
+                        var subTitlesCss = this.cssToOverride["subtitles"];
+                        if (subTitlesCss.hasOwnProperty(i.toString())) {
+                            KASClient.UI.addCSS(subtitleLabel, subTitlesCss[i.toString()]);
+                        }
                     }
                     rowItems.push(subtitleLabel);
                     this.allSubtitleLabels[i] = subtitleLabel;
@@ -8688,7 +10337,7 @@ var KASClient;
 (function (KASClient) {
     var UI;
     (function (UI) {
-        var KASFormImageTitleSubtitleActionModule = (function (_super) {
+        var KASFormImageTitleSubtitleActionModule = /** @class */ (function (_super) {
             __extends(KASFormImageTitleSubtitleActionModule, _super);
             function KASFormImageTitleSubtitleActionModule() {
                 var _this = _super !== null && _super.apply(this, arguments) || this;
@@ -8765,7 +10414,7 @@ var KASClient;
 (function (KASClient) {
     var UI;
     (function (UI) {
-        var KASFormModuleContainer = (function () {
+        var KASFormModuleContainer = /** @class */ (function () {
             function KASFormModuleContainer() {
                 this.navigationBarHidden = false;
                 this.bottomBarHidden = false;
@@ -8853,7 +10502,7 @@ var KASClient;
 (function (KASClient) {
     var UI;
     (function (UI) {
-        var KASFormPage = (function () {
+        var KASFormPage = /** @class */ (function () {
             function KASFormPage() {
                 this.navigationBar = new UI.KASFormPageNavigationBar();
                 this.moduleContainer = new UI.KASFormModuleContainer();
@@ -8861,6 +10510,7 @@ var KASClient;
                 this.pageWillAppearCallback = null;
                 this.pageWillDisappearCallback = null;
                 this.view = null;
+                this.currentHeight = null;
             }
             KASFormPage.prototype.getView = function () {
                 if (this.view == null) {
@@ -8908,11 +10558,14 @@ var KASClient;
             };
             KASFormPage.prototype.hidePage = function () {
                 this.view.style.left = "calc(-" + this.view.style.width + ")";
+                this.currentHeight = this.view.style.height;
+                this.view.style.height = "0";
                 this.navigationBar.getView().style.position = "absolute";
                 this.bottomBar.getView().style.position = "absolute";
                 this.view.setAttribute(UI.KASFormAccessibilityKey.Hidden, "true");
             };
             KASFormPage.prototype.showPage = function () {
+                this.view.style.height = this.currentHeight;
                 this.view.style.left = "0";
                 if (!KASClient.isIOSVersionAbove11()) {
                     this.navigationBar.getView().style.position = "fixed";
@@ -8952,7 +10605,7 @@ var KASClient;
 (function (KASClient) {
     var UI;
     (function (UI) {
-        var KASFormPageBottomBar = (function () {
+        var KASFormPageBottomBar = /** @class */ (function () {
             function KASFormPageBottomBar() {
                 this.elements = [];
                 this.attributes = null;
@@ -8994,7 +10647,7 @@ var KASClient;
 (function (KASClient) {
     var UI;
     (function (UI) {
-        var KASFormPageNavigationBar = (function () {
+        var KASFormPageNavigationBar = /** @class */ (function () {
             function KASFormPageNavigationBar() {
                 this.backAsset = null;
                 this.backAction = null;
@@ -9197,7 +10850,7 @@ var KASClient;
 (function (KASClient) {
     var UI;
     (function (UI) {
-        var KASFormPageNavigator = (function () {
+        var KASFormPageNavigator = /** @class */ (function () {
             function KASFormPageNavigator() {
                 this.dismissAction = null;
                 this.navigationStack = [];
@@ -9287,7 +10940,7 @@ var KASClient;
 (function (KASClient) {
     var UI;
     (function (UI) {
-        var KASFormQuestionResponsesModule = (function () {
+        var KASFormQuestionResponsesModule = /** @class */ (function () {
             function KASFormQuestionResponsesModule() {
                 this.questionTitle = null;
                 this.responsesHeader = null;
@@ -9360,6 +11013,29 @@ var KASClient;
                     var avgRow = this.getTitleCountRow(this.averageTitle, avg);
                     UI.setAccessibilityBasic(avgRow, false, UI.KASFormAccessibilityRole.Text, this.averageTitle + ". " + avg);
                     return UI.getVerticalDiv([sumRow, avgRow]);
+                }
+                else if (this.questionType == KASClient.KASQuestionType.AttachmentList) {
+                    var attachmentListResult = this.questionResult;
+                    // Currently aggregation view is supported only for list of images type response
+                    if (attachmentListResult.attachmentListType == KASClient.AttachmentListResponseType.LIST_OF_IMAGES) {
+                        var imageResponseAggregationModule = new UI.KASFormImageResponseAggregationRecyclerModule();
+                        imageResponseAggregationModule.userInfo = attachmentListResult.userInfo;
+                        imageResponseAggregationModule.timestamps = attachmentListResult.timeStamps;
+                        imageResponseAggregationModule.images = [];
+                        for (var imageListIndex = 0; imageListIndex < imageResponseAggregationModule.userInfo.length; imageListIndex++) {
+                            var imageJSONArray = JSON.parse(attachmentListResult.attachmentsResponseJSONStrings[imageListIndex]);
+                            var imagesAttachments = [];
+                            for (var imageIndex = 0; imageIndex < imageJSONArray.length; imageIndex++) {
+                                var imageAttachment = KASClient.KASImageAttachment.fromJSON(imageJSONArray[imageIndex]);
+                                imagesAttachments.push(imageAttachment);
+                            }
+                            imageResponseAggregationModule.images.push(imagesAttachments);
+                        }
+                        return imageResponseAggregationModule.getView();
+                    }
+                    else {
+                        return UI.getLabel(this.aggregationNotApplicableTitle, this.getNumericResultsRowAttributes());
+                    }
                 }
                 else {
                     return UI.getLabel(this.aggregationNotApplicableTitle, this.getNumericResultsRowAttributes());
@@ -9434,7 +11110,7 @@ var KASClient;
 (function (KASClient) {
     var UI;
     (function (UI) {
-        var KASFormTimelineModule = (function (_super) {
+        var KASFormTimelineModule = /** @class */ (function (_super) {
             __extends(KASFormTimelineModule, _super);
             function KASFormTimelineModule() {
                 return _super !== null && _super.apply(this, arguments) || this;
@@ -9498,7 +11174,7 @@ var KASClient;
 (function (KASClient) {
     var UI;
     (function (UI) {
-        var KASFormUserTitleSubtitleActionModule = (function (_super) {
+        var KASFormUserTitleSubtitleActionModule = /** @class */ (function (_super) {
             __extends(KASFormUserTitleSubtitleActionModule, _super);
             function KASFormUserTitleSubtitleActionModule() {
                 var _this = _super !== null && _super.apply(this, arguments) || this;
@@ -9570,124 +11246,34 @@ var KASClient;
         UI.KASFormUserTitleSubtitleActionModule = KASFormUserTitleSubtitleActionModule;
     })(UI = KASClient.UI || (KASClient.UI = {}));
 })(KASClient || (KASClient = {}));
-// Constants
-var NAVIGATION_BAR_HEIGHT_IOS = "44pt";
-var NAVIGATION_BAR_HEIGHT_ANDROID = "36pt";
-var BOTTOM_BAR_HEIGHT = "44pt";
-var MODULE_GAP = "4pt";
-var DEFAULT_SPACE_LENGTH = "10pt";
-var DEFAULT_IMAGE_DIMEN = "50pt";
-var BLUE_COLOR = "rgb(0, 111, 241)";
-var LIGHT_BLUE_COLOR = "rgb(0, 161, 255)";
-var RED_COLOR = "rgb(208, 2, 27)";
-var LIGHT_RED_COLOR = "rgb(222, 45, 79)";
-var LINE_SEPARATOR_ATTRIBUTE = "0.5pt solid #d4d8db";
-var PAGE_BG_COLOR = "#f1f2f4";
-var SHADOW_COLOR = "rgba(0, 0, 0, 0.1)";
-var CLEAR_COLOR = "rgba(0, 0, 0, 0)";
-var TEXT_PRIMARY_COLOR = "rgb(50, 72, 95)";
-var TEXT_SECONDARY_COLOR = "rgb(102, 119, 135)";
-var GREY_BACKGROUND_COLOR = "rgba(212, 216, 219, 0.4)";
-var REGULAR_FONT_WEIGHT = "normal";
-var MEDIUM_FONT_WEIGHT = "500";
-var SEMIBOLD_FONT_WEIGHT = "600";
-var iOSFontSizeScaleMultiplier = 1.0;
+// Uncomment below to start compiling KASClientUI.js
+//// <reference path="../../../js/declarations/KASClientCore.d.ts"/>
 var KASClient;
 (function (KASClient) {
     var UI;
     (function (UI) {
-        /////////////////////////////////////////////////
-        ////////////// INCOMPATIBLE SCREEN //////////////
-        /////////////////////////////////////////////////
         function showIncompatibleScreen() {
-            // If progress bar is shown, hide it first
-            if (KASClient.Version.clientSupports(KASClient.Version.VERSION_1)) {
-                KASClient.App.hideProgressBar();
-            }
-            var incompatibleModule = new UI.KASFormEmptyModule();
-            incompatibleModule.title = KASClient.Internal.getKASClientString("KASFormErrorTitle");
-            incompatibleModule.subtitle = KASClient.Internal.getKASClientString("KASFormErrorSubTitle");
-            var dismissScreen = function () {
-                if (KASClient.Version.clientSupports(KASClient.Version.VERSION_1)) {
-                    KASClient.App.dismissCurrentScreen();
-                }
-                else if (KASClient.getPlatform() == KASClient.Platform.iOS) {
-                    // Submit a dummy response against a dummy id which will dismiss the screen
-                    // without adding that response
-                    KASClient.Form.sumbitFormResponse(JSON.parse("{}"), "DUMMY_ID", true, false, false);
-                }
-            };
-            if (KASClient.Version.clientSupports(KASClient.Version.VERSION_3)) {
-                incompatibleModule.actionTitle = KASClient.Internal.getKASClientString("KASFormErrorUpgradeAction");
-                incompatibleModule.action = function () {
-                    KASClient.openStoreLink();
-                };
-                incompatibleModule.subActionTitle = KASClient.Internal.getKASClientString("KASFormErrorNotNowAction");
-                incompatibleModule.subAction = function () {
-                    dismissScreen();
-                };
-            }
-            else {
-                incompatibleModule.actionTitle = KASClient.Internal.getKASClientString("KASFormErrorOkAction");
-                incompatibleModule.action = function () {
-                    dismissScreen();
-                };
-            }
-            addCSS(document.body, { "background-color": "white" });
-            clearElement(document.body);
-            addElement(incompatibleModule.getView(), document.body);
+            return KASClient.showIncompatibleScreen();
         }
         UI.showIncompatibleScreen = showIncompatibleScreen;
         /////////////////// General Module Utility ///////////////////
         function getProfilePic(user, attributes) {
             if (attributes === void 0) { attributes = null; }
-            var userProfilePicDiv = getLabel(user.pictureInitials, Object.assign(getDefaultProfilePicAttributes(user), attributes));
-            if (user.pictureUrl && user.pictureUrl != "") {
-                userProfilePicDiv = getCircularImage(user.pictureUrl, "30pt", attributes);
-            }
-            return userProfilePicDiv;
+            return KASClient.getProfilePic(user, attributes);
         }
         UI.getProfilePic = getProfilePic;
         function getDefaultProfilePicAttributes(user) {
-            var attributes = {};
-            attributes["border-radius"] = "50%";
-            attributes["width"] = "30pt";
-            attributes["height"] = "30pt";
-            attributes["display"] = "flex";
-            attributes["align-items"] = "center";
-            attributes["justify-content"] = "center";
-            attributes["background-color"] = BLUE_COLOR;
-            if (user.pictureBGColor) {
-                attributes["background-color"] = user.pictureBGColor;
-            }
-            attributes["font-size"] = getScaledFontSize("12pt");
-            attributes["font-weight"] = REGULAR_FONT_WEIGHT;
-            attributes["color"] = "white";
-            return attributes;
+            return KASClient.getDefaultProfilePicAttributes(user);
         }
         UI.getDefaultProfilePicAttributes = getDefaultProfilePicAttributes;
         function getHorizontalDiv(childrenElements, attributes) {
             if (attributes === void 0) { attributes = null; }
-            var div = getDiv(Object.assign(getHorizontalDivAttributes(), attributes));
-            for (var i = 0; i < childrenElements.length; i++) {
-                var childElement = childrenElements[i];
-                if (childElement) {
-                    addElement(childElement, div);
-                }
-            }
-            return div;
+            return KASClient.getHorizontalDiv(childrenElements, attributes);
         }
         UI.getHorizontalDiv = getHorizontalDiv;
         function getVerticalDiv(childrenElements, attributes) {
             if (attributes === void 0) { attributes = null; }
-            var div = getDiv(Object.assign(getVerticalDivAttributes(), attributes));
-            for (var i = 0; i < childrenElements.length; i++) {
-                var childElement = childrenElements[i];
-                if (childElement) {
-                    addElement(childElement, div);
-                }
-            }
-            return div;
+            return KASClient.getVerticalDiv(childrenElements, attributes);
         }
         UI.getVerticalDiv = getVerticalDiv;
         function getFlexibleSpace() {
@@ -9699,27 +11285,25 @@ var KASClient;
             return getDiv(getSpaceAttributes(length));
         }
         UI.getSpace = getSpace;
-        function getLabel(text, attributes) {
+        function getLabel(text, attributes, showLinks) {
             if (text === void 0) { text = null; }
             if (attributes === void 0) { attributes = null; }
-            var labelDiv = getDiv(Object.assign(getLabelAttributes(), attributes));
-            setText(labelDiv, text);
-            return labelDiv;
+            if (showLinks === void 0) { showLinks = true; }
+            return KASClient.getLabel(text, attributes, showLinks);
         }
         UI.getLabel = getLabel;
         function getButton(title, clickEvent, attributes) {
             if (title === void 0) { title = null; }
             if (clickEvent === void 0) { clickEvent = null; }
             if (attributes === void 0) { attributes = null; }
-            var buttonDiv = getDiv(attributes);
-            setText(buttonDiv, title);
-            addClickEvent(buttonDiv, clickEvent);
-            return buttonDiv;
+            return KASClient.getButton(title, clickEvent, attributes);
         }
         UI.getButton = getButton;
-        function setText(element, text) {
+        function setText(element, text, asHTML, showLinks) {
             if (text === void 0) { text = null; }
-            element.innerHTML = text.trim();
+            if (asHTML === void 0) { asHTML = true; }
+            if (showLinks === void 0) { showLinks = true; }
+            KASClient.setText(element, text, asHTML, showLinks);
         }
         UI.setText = setText;
         function getBase64CircularImage(data, dimen, attributes) {
@@ -9739,9 +11323,7 @@ var KASClient;
         function getBase64Image(data, attributes) {
             if (data === void 0) { data = null; }
             if (attributes === void 0) { attributes = null; }
-            var image = getElement("img", Object.assign(getImageAttributes(), attributes));
-            image.src = getBase64Src(data);
-            return image;
+            return KASClient.getBase64Image(data, attributes);
         }
         UI.getBase64Image = getBase64Image;
         function getBase64Src(data) {
@@ -9751,9 +11333,7 @@ var KASClient;
         function getImage(path, attributes) {
             if (path === void 0) { path = null; }
             if (attributes === void 0) { attributes = null; }
-            var image = getElement("img", Object.assign(getImageAttributes(), attributes));
-            image.src = path;
-            return image;
+            return KASClient.getImage(path, attributes);
         }
         UI.getImage = getImage;
         function getDiv(attributes) {
@@ -9768,9 +11348,7 @@ var KASClient;
         UI.getPrettyPrintDiv = getPrettyPrintDiv;
         function getCanvas(width, height, attributes) {
             if (attributes === void 0) { attributes = null; }
-            var canvas = createHiDPICanvas(width, height);
-            addCSS(canvas, attributes);
-            return canvas;
+            return KASClient.getCanvas(width, height, attributes);
         }
         UI.getCanvas = getCanvas;
         function getLoadingSpinner(attributes) {
@@ -9778,92 +11356,54 @@ var KASClient;
             return getDiv(Object.assign(getLoadingSpinnerAttributes(), attributes));
         }
         UI.getLoadingSpinner = getLoadingSpinner;
+        function getTable(attributes) {
+            if (attributes === void 0) { attributes = null; }
+            return getElement("table", attributes);
+        }
+        UI.getTable = getTable;
+        function getTableRow(attributes) {
+            if (attributes === void 0) { attributes = null; }
+            return getElement("tr", attributes);
+        }
+        UI.getTableRow = getTableRow;
+        function getTableDataCell(attributes) {
+            if (attributes === void 0) { attributes = null; }
+            return getElement("td", attributes);
+        }
+        UI.getTableDataCell = getTableDataCell;
         /////////////////// CSS Attributes ///////////////////
         function getHorizontalDivAttributes() {
-            var attributes = {};
-            attributes["display"] = "flex";
-            attributes["flex-direction"] = "row";
-            attributes["align-items"] = "center";
-            attributes["justify-content"] = "space-between";
-            return attributes;
+            return KASClient.getHorizontalDivAttributes();
         }
         UI.getHorizontalDivAttributes = getHorizontalDivAttributes;
         function getVerticalDivAttributes() {
-            var attributes = {};
-            attributes["display"] = "flex";
-            attributes["flex-direction"] = "column";
-            attributes["justify-content"] = "space-between";
-            return attributes;
+            return KASClient.getVerticalDivAttributes();
         }
         UI.getVerticalDivAttributes = getVerticalDivAttributes;
         function getCircularImageAttributes(dimen) {
-            var attributes = getImageAttributes();
-            attributes["border-radius"] = "50%";
-            attributes["width"] = dimen;
-            attributes["height"] = dimen;
-            attributes["flex"] = "none";
-            return attributes;
+            return KASClient.getCircularImageAttributes(dimen);
         }
         UI.getCircularImageAttributes = getCircularImageAttributes;
         function getImageAttributes() {
-            var attributes = {};
-            // Aspect fill
-            attributes["overflow"] = "hidden";
-            attributes["object-fit"] = "cover";
-            return attributes;
+            return KASClient.getImageAttributes();
         }
         UI.getImageAttributes = getImageAttributes;
         function getLabelAttributes() {
-            var attributes = {};
-            attributes["overflow-wrap"] = "break-word";
-            attributes["word-wrap"] = "break-word";
-            attributes["word-break"] = "break-word";
-            // attributes["-ms-hyphens"] = "auto";
-            // attributes["-moz-hyphens"] = "auto";
-            // attributes["-webkit-hyphens"] = "auto";
-            // attributes["hyphens"] = "auto";
-            return attributes;
+            return KASClient.getLabelAttributes();
         }
         UI.getLabelAttributes = getLabelAttributes;
         function getSpaceAttributes(length) {
-            var attributes = {};
-            attributes["width"] = length;
-            attributes["height"] = length;
-            attributes["flex"] = "none";
-            return attributes;
+            return KASClient.getSpaceAttributes(length);
         }
         UI.getSpaceAttributes = getSpaceAttributes;
         function getCoverRestOfTheSpaceAttributes() {
-            var attributes = {};
-            attributes["flex"] = "1";
-            return attributes;
+            return KASClient.getCoverRestOfTheSpaceAttributes();
         }
         UI.getCoverRestOfTheSpaceAttributes = getCoverRestOfTheSpaceAttributes;
         function getLoadingSpinnerAttributes() {
-            addLoadingSpinnerAnimation();
-            var attributes = {};
-            var borderWidth = "2pt solid ";
-            attributes["border"] = borderWidth + PAGE_BG_COLOR;
-            attributes["border-top"] = borderWidth + LIGHT_BLUE_COLOR;
-            attributes["border-bottom"] = borderWidth + LIGHT_BLUE_COLOR;
-            attributes["border-radius"] = "50%";
-            attributes["width"] = "16pt";
-            attributes["height"] = "16pt";
-            attributes["animation"] = "spin 1.5s ease-in-out infinite";
-            return attributes;
+            return KASClient.getLoadingSpinnerAttributes();
         }
         UI.getLoadingSpinnerAttributes = getLoadingSpinnerAttributes;
-        var spinnerCSSAdded = false;
-        function addLoadingSpinnerAnimation() {
-            if (spinnerCSSAdded) {
-                return;
-            }
-            var style = document.createElement('style');
-            style.type = 'text/css';
-            style.innerHTML = "@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }";
-            document.getElementsByTagName('head')[0].appendChild(style);
-            spinnerCSSAdded = true;
-        }
         /////////////////// General Utility ///////////////////
         function drawPieChart(data, colors, borderColor, canvas, canvasWidth, canvasHeight) {
             var ctx = canvas.getContext("2d");
@@ -9894,104 +11434,48 @@ var KASClient;
         function addElement(element, parentElement) {
             if (element === void 0) { element = null; }
             if (parentElement === void 0) { parentElement = null; }
-            if (element && parentElement) {
-                parentElement.appendChild(element);
-            }
+            KASClient.addElement(element, parentElement);
         }
         UI.addElement = addElement;
         function removeElement(element, parentElement) {
             if (element === void 0) { element = null; }
             if (parentElement === void 0) { parentElement = null; }
-            if (element == null)
-                return;
-            var parent;
-            if (null == parentElement) {
-                parent = element.parentElement;
-            }
-            else {
-                parent = parentElement;
-            }
-            if (element && parent && parent.contains(element)) {
-                parent.removeChild(element);
-            }
+            KASClient.removeElement(element, parentElement);
         }
         UI.removeElement = removeElement;
         function replaceElement(newElement, oldElement, parentElement) {
             if (newElement === void 0) { newElement = null; }
             if (oldElement === void 0) { oldElement = null; }
             if (parentElement === void 0) { parentElement = null; }
-            if (newElement && oldElement && parentElement) {
-                parentElement.replaceChild(newElement, oldElement);
-            }
+            KASClient.replaceElement(newElement, oldElement, parentElement);
         }
         UI.replaceElement = replaceElement;
         function clearElement(element) {
             if (element === void 0) { element = null; }
-            while (element && element.firstChild) {
-                element.removeChild(element.firstChild);
-            }
+            KASClient.clearElement(element);
         }
         UI.clearElement = clearElement;
         function getElement(elementTag, attributes) {
             if (attributes === void 0) { attributes = null; }
-            var element = document.createElement(elementTag);
-            addCSS(element, attributes);
-            return element;
+            return KASClient.getElement(elementTag, attributes);
         }
         UI.getElement = getElement;
         function addClickEvent(element, clickEvent) {
-            if (clickEvent != null) {
-                element.onclick = clickEvent;
-            }
+            KASClient.addClickEvent(element, clickEvent);
         }
         UI.addClickEvent = addClickEvent;
         function setId(element, id) {
-            if (id != null || id != "") {
-                element.id = id;
-            }
+            KASClient.setId(element, id);
         }
         UI.setId = setId;
         function setClass(element, className) {
-            if (className != null || className != "") {
-                element.className = className;
-            }
+            KASClient.setClass(element, className);
         }
         UI.setClass = setClass;
         function addCSS(element, attributes) {
-            if (attributes != null) {
-                var cssText = "";
-                if (element.style.cssText && element.style.cssText != "") {
-                    cssText = element.style.cssText;
-                }
-                for (var key in attributes) {
-                    cssText += key + ":" + attributes[key] + ";";
-                }
-                element.style.cssText = cssText;
-            }
+            KASClient.addCSS(element, attributes);
         }
         UI.addCSS = addCSS;
-        function getPixelRatio() {
-            var ctx = document.createElement("canvas").getContext("2d"), dpr = window.devicePixelRatio || 1, bsr = ctx.webkitBackingStorePixelRatio ||
-                ctx.mozBackingStorePixelRatio ||
-                ctx.msBackingStorePixelRatio ||
-                ctx.oBackingStorePixelRatio ||
-                ctx.backingStorePixelRatio || 1;
-            return dpr / bsr;
-        }
-        ;
-        function createHiDPICanvas(w, h, ratio) {
-            if (ratio === void 0) { ratio = 0; }
-            if (!ratio) {
-                ratio = getPixelRatio();
-            }
-            var can = document.createElement("canvas");
-            can.width = w * ratio;
-            can.height = h * ratio;
-            can.style.width = w + "pt";
-            can.style.height = h + "pt";
-            can.getContext("2d").setTransform(ratio, 0, 0, ratio, 0, 0);
-            return can;
-        }
         function getChevronIcon(attributes) {
             if (attributes === void 0) { attributes = null; }
             return getBase64Image(UI.Assets.chevron, Object.assign(getChevronIconAttributes(), attributes));
@@ -10028,55 +11512,11 @@ var KASClient;
             if (text === void 0) { text = ""; }
             if (placeholder === void 0) { placeholder = ""; }
             if (attributes === void 0) { attributes = null; }
-            var element = getElement("span", Object.assign(getContentEditableSpanAttributes(), attributes));
-            element.setAttribute("placeholder", placeholder);
-            element.setAttribute('contenteditable', "true");
-            element.innerText = text;
-            var maxLength = attributes["max-length"];
-            var prevString = "";
-            element.addEventListener('input', function () {
-                if (this.innerText.trim() == "") {
-                    clearElement(this);
-                }
-                if (maxLength && this.innerText.length > maxLength) {
-                    this.innerText = prevString;
-                }
-                else if (maxLength) {
-                    prevString = this.innerText;
-                }
-                if (onInputEvent) {
-                    onInputEvent();
-                }
-            });
-            return element;
+            return KASClient.getContentEditableSpan(text, placeholder, attributes, onInputEvent);
         }
         UI.getContentEditableSpan = getContentEditableSpan;
-        function getContentEditableSpanAttributes() {
-            var attributes = {};
-            attributes["word-break"] = "break-word";
-            attributes["-webkit-user-select"] = "text";
-            return attributes;
-        }
         function highlightLinksInElement(element) {
-            if (element == null)
-                return;
-            var allowedTypes = ["label", "div", "p"];
-            if (allowedTypes.indexOf(element.nodeName.toLowerCase()) == -1)
-                return;
-            var text = element.innerText;
-            var urlRegexHttp = /(\b(https?|ftp):?\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig; // for http urls
-            var urlRegexWww = /(^|[^\/])(www\.[\S]+(\b|$))/gim; // for www urls
-            text = text.replace(urlRegexHttp, function (url) {
-                return "<a href=\"" + url + "\">" + url + "</a>";
-            });
-            text = text.replace(urlRegexWww, function (url) {
-                var newUrl = url;
-                if (url.toLowerCase().lastIndexOf("www") == 0) {
-                    newUrl = "http://" + url;
-                }
-                return "<a href=\"" + newUrl + "\">" + url + "</a>";
-            });
-            element.innerHTML = text;
+            highlightLinksInElement(element);
         }
         UI.highlightLinksInElement = highlightLinksInElement;
         function showImageImmersiveView(path) {
@@ -10114,6 +11554,26 @@ var KASClient;
             addElement(alertDiv, document.body);
         }
         UI.showImageImmersiveView = showImageImmersiveView;
+        function showAlertDailogWithBackHandling(title, message, okButtonTitle, okButtonAction, cancelButtonTitle, cancelButtonAction) {
+            var currentBackCallback = KASClient.App.hardwareBackPressCallback;
+            KASClient.App.registerHardwareBackPressCallback(function () {
+                removeElement(alertDiv, document.body);
+                KASClient.App.registerHardwareBackPressCallback(currentBackCallback);
+            });
+            var alertDiv = getAlertDailog(title, message, okButtonTitle, function () {
+                KASClient.App.registerHardwareBackPressCallback(currentBackCallback);
+                if (okButtonAction) {
+                    okButtonAction();
+                }
+            }, cancelButtonTitle, function () {
+                KASClient.App.registerHardwareBackPressCallback(currentBackCallback);
+                if (cancelButtonAction) {
+                    cancelButtonAction();
+                }
+            });
+            addElement(alertDiv, document.body);
+        }
+        UI.showAlertDailogWithBackHandling = showAlertDailogWithBackHandling;
         function showAlertDailog(title, message, okButtonTitle, okButtonAction, cancelButtonTitle, cancelButtonAction) {
             var alertDiv = getAlertDailog(title, message, okButtonTitle, okButtonAction, cancelButtonTitle, cancelButtonAction);
             addElement(alertDiv, document.body);
@@ -10246,29 +11706,18 @@ var KASClient;
         }
         UI.removeSwipeGesture = removeSwipeGesture;
         function getMediumFontAttributes() {
+            var attributes = {};
             if (KASClient.getPlatform() == KASClient.Platform.Android) {
-                return {
-                    "font-family": "sans-serif-medium"
-                };
+                attributes["font-family"] = "sans-serif-medium";
             }
             else {
-                return {
-                    "font-weight": "600"
-                };
+                attributes["font-weight"] = "600";
             }
+            return attributes;
         }
         UI.getMediumFontAttributes = getMediumFontAttributes;
         function getScaledFontSize(fontSize) {
-            if (KASClient.getPlatform() == KASClient.Platform.Android)
-                return fontSize;
-            if (fontSize == null || fontSize == "" || fontSize == undefined)
-                return fontSize;
-            var size = parseFloat(fontSize);
-            if (isNaN(size))
-                return fontSize;
-            var unit = fontSize.substr(size.toString().length, fontSize.length - size.toString().length);
-            size = size * iOSFontSizeScaleMultiplier;
-            return size.toString() + unit;
+            return KASClient.getScaledFontSize(fontSize);
         }
         UI.getScaledFontSize = getScaledFontSize;
         function getAttachmentIconBase64(attachmentExtension) {
@@ -10296,88 +11745,16 @@ var KASClient;
          * Offset position of element
          */
         function findPosition(element) {
-            var curleft = 0;
-            var curtop = 0;
-            var curright = 0;
-            var curbottom = 0;
-            if (element.offsetParent) {
-                do {
-                    curleft += element.offsetLeft;
-                    curtop += element.offsetTop;
-                } while (element = element.offsetParent);
-            }
-            return [curtop, curleft];
+            return KASClient.findPosition(element);
         }
         UI.findPosition = findPosition;
         /**
          * Style value of element
          */
         function getStyle(element, styleName) {
-            // J/S Pro Techniques p136
-            if (element.style[styleName]) {
-                return element.style[styleName];
-            }
-            else if (element.currentStyle) {
-                return element.currentStyle[styleName];
-            }
-            else if (document.defaultView && document.defaultView.getComputedStyle) {
-                styleName = styleName.replace(/([A-Z])/g, "-$1");
-                styleName = styleName.toLowerCase();
-                var s = document.defaultView.getComputedStyle(element, "");
-                return s && s.getPropertyValue(styleName);
-            }
-            else {
-                return null;
-            }
+            return KASClient.getStyle(element, styleName);
         }
         UI.getStyle = getStyle;
-    })(UI = KASClient.UI || (KASClient.UI = {}));
-})(KASClient || (KASClient = {}));
-var KASClient;
-(function (KASClient) {
-    var UI;
-    (function (UI) {
-        var UrlType;
-        (function (UrlType) {
-            UrlType[UrlType["Current"] = 0] = "Current";
-            UrlType[UrlType["Fixed"] = 1] = "Fixed"; // A fixed url value will be shared irrespective of current window.location
-        })(UrlType = UI.UrlType || (UI.UrlType = {}));
-        var UrlAction;
-        (function (UrlAction) {
-            UrlAction[UrlAction["None"] = 0] = "None";
-            UrlAction[UrlAction["Share"] = 1] = "Share";
-            UrlAction[UrlAction["OpenInBrowser"] = 2] = "OpenInBrowser"; // 'Open in Browser' option will be available in toolbar actions
-        })(UrlAction = UI.UrlAction || (UI.UrlAction = {}));
-        var KASNativeToolbarProperties = (function () {
-            function KASNativeToolbarProperties() {
-                this.icon = null;
-                this.title = null;
-                this.subtitle = null;
-                this.fixedUrl = null;
-                this.urlType = UrlType.Current;
-                this.urlAction = UrlAction.None;
-            }
-            KASNativeToolbarProperties.prototype.toJSON = function () {
-                var object = JSON.parse("{}");
-                if (this.icon) {
-                    object["icon"] = this.icon;
-                }
-                if (this.title) {
-                    object["title"] = this.title;
-                }
-                if (this.subtitle) {
-                    object["subtitle"] = this.subtitle;
-                }
-                if (this.fixedUrl) {
-                    object["fixedUrl"] = this.fixedUrl;
-                }
-                object["urlType"] = this.urlType;
-                object["urlAction"] = this.urlAction;
-                return object;
-            };
-            return KASNativeToolbarProperties;
-        }());
-        UI.KASNativeToolbarProperties = KASNativeToolbarProperties;
     })(UI = KASClient.UI || (KASClient.UI = {}));
 })(KASClient || (KASClient = {}));
 var KASClient;
@@ -10458,352 +11835,1231 @@ var KASClient;
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
-    var ChatCard;
-    (function (ChatCard) {
-        /* THIS FILE SHOULD BE SIMILAR TO Apps/React/React/Storage/datamodels/Survey/ChatCardTemplate.m */
-        var ChatCardTemplateType;
-        (function (ChatCardTemplateType) {
-            ChatCardTemplateType[ChatCardTemplateType["UnknownChatCard"] = 0] = "UnknownChatCard";
-            ChatCardTemplateType[ChatCardTemplateType["DefaultChatCard"] = 1] = "DefaultChatCard";
-            ChatCardTemplateType[ChatCardTemplateType["CustomChatCard"] = 2] = "CustomChatCard";
-        })(ChatCardTemplateType = ChatCard.ChatCardTemplateType || (ChatCard.ChatCardTemplateType = {}));
-        var ChatCardTemplate = (function () {
-            function ChatCardTemplate() {
-                this.templateType = ChatCardTemplateType.UnknownChatCard;
+    var UI;
+    (function (UI) {
+        var KASAttachmentThumbnailView = /** @class */ (function () {
+            function KASAttachmentThumbnailView() {
+                this.documentDiv = null;
+                this.containerDiv = null;
             }
-            ChatCardTemplate.prototype.toJSON = function () {
-                var object = JSON.parse("{}");
-                object["templateType"] = this.templateType;
-                return object;
+            KASAttachmentThumbnailView.prototype.getView = function (fileName, type, size) {
+                var accessibilityString = "";
+                var documentView = KASClient.UI.getElement("div", {
+                    "padding": "8px",
+                    "object-fit": "cover",
+                    "position": "relative",
+                    "box-shadow": "0px 0px 7px rgba(0, 0, 0, 0.3)"
+                });
+                var documentHeader = KASClient.UI.getElement("div", {
+                    "color": "#98a3af",
+                    "font-size": KASClient.UI.getScaledFontSize("12px"),
+                    "letter-spacing": "2"
+                });
+                var documentHeaderText = "";
+                switch (type) {
+                    case KASClient.KASAttachmentType.Audio:
+                        documentHeaderText = KASClient.Internal.getKASClientString("KASAttachmentAudioText");
+                        this.containerDiv = KASClient.UI.getDiv({ "width": "100%", "position": "relative" });
+                        break;
+                    case KASClient.KASAttachmentType.Document:
+                        documentHeaderText = KASClient.Internal.getKASClientString("KASAttachmentDocumentText");
+                        break;
+                    default:
+                        break;
+                }
+                documentHeader.innerHTML = documentHeaderText;
+                accessibilityString += documentHeaderText + ".";
+                var documentName = KASClient.UI.getLabel(fileName, {
+                    "color": "#006ff1",
+                    "font-size": KASClient.UI.getScaledFontSize("14px"),
+                    "padding-top": "4px",
+                    "padding-bottom": "4px",
+                    "white-space": "nowrap",
+                    "overflow": "hidden",
+                    "text-overflow": "ellipsis"
+                });
+                var fileExt = "";
+                if (!KASClient.isEmptyString(fileName)) {
+                    fileExt = fileName.split('.').pop().toLowerCase();
+                    accessibilityString += (fileName + ".");
+                }
+                var documentIcon = KASClient.UI.getBase64Image(KASClient.UI.getAttachmentIconBase64(fileExt), {
+                    "height": "12pt",
+                    "width": "12pt",
+                    "float": "left"
+                });
+                var sizeString = KASClient.formatSize(size);
+                var documentSize = KASClient.UI.getLabel(sizeString, {
+                    "color": "#6f7e8f",
+                    "font-size": KASClient.UI.getScaledFontSize("12px"),
+                    "padding-left": "3px",
+                    "float": "left"
+                });
+                accessibilityString += (".size - " + sizeString + ". ");
+                var documentInfo = KASClient.UI.getDiv({ "height": "20px" });
+                KASClient.UI.addElement(documentIcon, documentInfo);
+                KASClient.UI.addElement(documentSize, documentInfo);
+                KASClient.UI.addElement(documentHeader, documentView);
+                KASClient.UI.addElement(this.containerDiv, documentView);
+                KASClient.UI.addElement(documentName, documentView);
+                KASClient.UI.addElement(documentInfo, documentView);
+                if (this.onTappedCallback) {
+                    documentView.onclick = this.onTappedCallback;
+                    accessibilityString += (KASClient.Internal.getKASClientString("TapToOpenFormatText", documentHeaderText) + ".");
+                }
+                KASClient.UI.setAccessibilityBasic(documentHeader, true);
+                KASClient.UI.setAccessibilityBasic(documentIcon, true);
+                KASClient.UI.setAccessibilityBasic(documentSize, true);
+                KASClient.UI.setAccessibilityBasic(documentName, false, UI.KASFormAccessibilityRole.Text, accessibilityString);
+                return documentView;
             };
-            return ChatCardTemplate;
+            return KASAttachmentThumbnailView;
         }());
-        ChatCard.ChatCardTemplate = ChatCardTemplate;
-    })(ChatCard = KASClient.ChatCard || (KASClient.ChatCard = {}));
-})(KASClient || (KASClient = {}));
-/// <reference path="./ChatCardTemplate.ts" />
-var KASClient;
-(function (KASClient) {
-    var ChatCard;
-    (function (ChatCard) {
-        /* THIS FILE SHOULD BE SIMILAR TO Apps/React/React/Storage/datamodels/Survey/CustomChatCardTemplate.m */
-        var CustomChatCardTemplate = (function (_super) {
-            __extends(CustomChatCardTemplate, _super);
-            function CustomChatCardTemplate() {
-                var _this = _super.call(this) || this;
-                _this.showSettings = true;
-                _this.showLikesAndComments = true;
-                _this.rootView = new ChatCard.View();
-                _this.templateType = ChatCard.ChatCardTemplateType.CustomChatCard;
-                return _this;
-            }
-            CustomChatCardTemplate.prototype.toJSON = function () {
-                var object = _super.prototype.toJSON.call(this);
-                object["showSettings"] = this.showSettings;
-                object["showLikesAndComments"] = this.showLikesAndComments;
-                object["root"] = this.rootView.toJSON();
-                return object;
-            };
-            return CustomChatCardTemplate;
-        }(ChatCard.ChatCardTemplate));
-        ChatCard.CustomChatCardTemplate = CustomChatCardTemplate;
-    })(ChatCard = KASClient.ChatCard || (KASClient.ChatCard = {}));
-})(KASClient || (KASClient = {}));
-/// <reference path="./ChatCardTemplate.ts" />
-var KASClient;
-(function (KASClient) {
-    var ChatCard;
-    (function (ChatCard) {
-        /* THIS FILE SHOULD BE SIMILAR TO Apps/React/React/Storage/datamodels/Survey/DefaultChatCardTemplate.m */
-        var ShortSummaryStatus;
-        (function (ShortSummaryStatus) {
-            ShortSummaryStatus[ShortSummaryStatus["NoResponse"] = 0] = "NoResponse";
-            ShortSummaryStatus[ShortSummaryStatus["SomeResponse"] = 1] = "SomeResponse";
-            ShortSummaryStatus[ShortSummaryStatus["CompleteResponse"] = 2] = "CompleteResponse";
-        })(ShortSummaryStatus = ChatCard.ShortSummaryStatus || (ChatCard.ShortSummaryStatus = {}));
-        var DefaultChatCardTemplate = (function (_super) {
-            __extends(DefaultChatCardTemplate, _super);
-            function DefaultChatCardTemplate() {
-                var _this = _super.call(this) || this;
-                _this.showSettings = true;
-                _this.showTitle = true;
-                _this.showSubtitle = true;
-                _this.showSummary = true;
-                _this.showLikesAndComments = true;
-                _this.showResponseInfo = true;
-                _this.showResponseStatus = false;
-                // Either of the below two can be true
-                _this.showResponse = false;
-                _this.showRespondButton = true;
-                _this.shortSummaryStatus = ShortSummaryStatus.NoResponse;
-                _this.cardTitle = null;
-                _this.cardSubtitle = null;
-                _this.cardSummaryText = null;
-                _this.cardResponseStatusText = null;
-                // Either of the below two can appear on screen
-                _this.cardResponseText = null;
-                _this.cardRespondButtonText = null;
-                _this.templateType = ChatCard.ChatCardTemplateType.DefaultChatCard;
-                return _this;
-            }
-            DefaultChatCardTemplate.prototype.toJSON = function () {
-                var object = _super.prototype.toJSON.call(this);
-                object["showSettings"] = this.showSettings;
-                object["showTitle"] = this.showTitle;
-                object["showSubtitle"] = this.showSubtitle;
-                object["showSummary"] = this.showSummary;
-                object["showLikesAndComments"] = this.showLikesAndComments;
-                object["showResponseInfo"] = this.showResponseInfo;
-                object["showResponseStatus"] = this.showResponseStatus;
-                object["showResponse"] = this.showResponse;
-                object["showRespondButton"] = this.showRespondButton;
-                object["shortSummaryStatus"] = this.shortSummaryStatus;
-                if (this.cardTitle) {
-                    object["cardTitle"] = this.cardTitle;
-                }
-                if (this.cardSubtitle) {
-                    object["cardSubtitle"] = this.cardSubtitle;
-                }
-                if (this.cardSummaryText) {
-                    object["cardSummaryText"] = this.cardSummaryText;
-                }
-                if (this.cardResponseStatusText) {
-                    object["cardResponseStatusText"] = this.cardResponseStatusText;
-                }
-                if (this.cardResponseText) {
-                    object["cardResponseText"] = this.cardResponseText;
-                }
-                if (this.cardRespondButtonText) {
-                    object["cardRespondButtonText"] = this.cardRespondButtonText;
-                }
-                return object;
-            };
-            return DefaultChatCardTemplate;
-        }(ChatCard.ChatCardTemplate));
-        ChatCard.DefaultChatCardTemplate = DefaultChatCardTemplate;
-    })(ChatCard = KASClient.ChatCard || (KASClient.ChatCard = {}));
-})(KASClient || (KASClient = {}));
-var KASClient;
-(function (KASClient) {
-    var ChatCard;
-    (function (ChatCard) {
-        var View = (function () {
-            function View() {
-                this.type = "View";
-                this.id = "KASClient.ChatCard." + this.type + View.idIterator++;
-                this.style = JSON.parse("{}");
-                this.onClickHandler = null;
-                this.subviews = [];
-            }
-            View.prototype.addSubview = function (subview) {
-                this.subviews.push(subview);
-            };
-            View.prototype.getSubviewById = function (id) {
-                for (var i = 0; i < this.subviews.length; i++) {
-                    var subview = this.subviews[i];
-                    if (subview.id && subview.id == id) {
-                        return subview;
-                    }
-                }
-                return null;
-            };
-            View.prototype.removeSubviewById = function (id) {
-                for (var i = 0; i < this.subviews.length; i++) {
-                    var subview = this.subviews[i];
-                    if (subview.id && subview.id == id) {
-                        this.subviews.splice(i, 1);
-                    }
-                }
-            };
-            View.prototype.toJSON = function () {
-                var object = JSON.parse("{}");
-                if (this.id && this.id != "") {
-                    object["id"] = this.id;
-                }
-                object["type"] = this.type;
-                if (this.style && Object.keys(this.style).length > 0) {
-                    object["style"] = this.style;
-                }
-                if (this.onClickHandler && this.onClickHandler != "") {
-                    object["onClick"] = this.onClickHandler;
-                }
-                if (this.subviews.length > 0) {
-                    object["children"] = [];
-                    for (var i = 0; i < this.subviews.length; i++) {
-                        var subview = this.subviews[i];
-                        object["children"].push(subview.toJSON());
-                    }
-                }
-                return object;
-            };
-            View.fromJSON = function (object, view) {
-                if (view === void 0) { view = null; }
-                if (view == null) {
-                    view = new View();
-                }
-                if (object) {
-                    if (object.hasOwnProperty("id")) {
-                        view.id = object["id"];
-                    }
-                    if (object.hasOwnProperty("type")) {
-                        view.type = object["type"];
-                    }
-                    if (object.hasOwnProperty("style")) {
-                        view.style = object["style"];
-                    }
-                    if (object.hasOwnProperty("onClick")) {
-                        view.onClickHandler = object["onClick"];
-                    }
-                    if (object.hasOwnProperty("children")) {
-                        view.subviews = [];
-                        for (var i = 0; i < object["children"].length; i++) {
-                            var childNode = object["children"][i];
-                            var subview = this.fromJSON(childNode);
-                            view.subviews.push(subview);
-                        }
-                    }
-                }
-                return view;
-            };
-            View.idIterator = 0;
-            return View;
-        }());
-        ChatCard.View = View;
-        var FixedSpace = (function (_super) {
-            __extends(FixedSpace, _super);
-            function FixedSpace(length) {
-                if (length === void 0) { length = 0; }
-                var _this = _super.call(this) || this;
-                _this.style["width"] = length;
-                _this.style["height"] = length;
-                _this.style["flex"] = 0;
-                return _this;
-            }
-            return FixedSpace;
-        }(View));
-        ChatCard.FixedSpace = FixedSpace;
-        var FlexibleSpace = (function (_super) {
-            __extends(FlexibleSpace, _super);
-            function FlexibleSpace() {
-                var _this = _super.call(this) || this;
-                _this.style["flex"] = 1;
-                return _this;
-            }
-            return FlexibleSpace;
-        }(View));
-        ChatCard.FlexibleSpace = FlexibleSpace;
-    })(ChatCard = KASClient.ChatCard || (KASClient.ChatCard = {}));
-})(KASClient || (KASClient = {}));
-/// <reference path="./View.ts" />
-var KASClient;
-(function (KASClient) {
-    var ChatCard;
-    (function (ChatCard) {
-        var HorizontalContainer = (function (_super) {
-            __extends(HorizontalContainer, _super);
-            function HorizontalContainer() {
-                var _this = _super !== null && _super.apply(this, arguments) || this;
-                _this.type = "Row";
-                return _this;
-            }
-            return HorizontalContainer;
-        }(ChatCard.View));
-        ChatCard.HorizontalContainer = HorizontalContainer;
-    })(ChatCard = KASClient.ChatCard || (KASClient.ChatCard = {}));
-})(KASClient || (KASClient = {}));
-/// <reference path="./View.ts" />
-var KASClient;
-(function (KASClient) {
-    var ChatCard;
-    (function (ChatCard) {
-        var Image = (function (_super) {
-            __extends(Image, _super);
-            function Image(s) {
-                if (s === void 0) { s = null; }
-                var _this = _super.call(this) || this;
-                _this.type = "Image";
-                _this.source = "";
-                _this.source = s;
-                return _this;
-            }
-            Image.prototype.toJSON = function () {
-                var object = _super.prototype.toJSON.call(this);
-                object["source"] = this.source;
-                return object;
-            };
-            Image.fromJSON = function (object) {
-                var image = new Image();
-                _super.fromJSON.call(this, object, image);
-                if (object) {
-                    if (object.hasOwnProperty("source")) {
-                        image.source = object["source"];
-                    }
-                }
-                return image;
-            };
-            return Image;
-        }(ChatCard.View));
-        ChatCard.Image = Image;
-    })(ChatCard = KASClient.ChatCard || (KASClient.ChatCard = {}));
-})(KASClient || (KASClient = {}));
-/// <reference path="./View.ts" />
-var KASClient;
-(function (KASClient) {
-    var ChatCard;
-    (function (ChatCard) {
-        var Text = (function (_super) {
-            __extends(Text, _super);
-            function Text(t) {
-                if (t === void 0) { t = ""; }
-                var _this = _super.call(this) || this;
-                _this.type = "Text";
-                _this.text = "";
-                _this.text = t;
-                return _this;
-            }
-            Text.prototype.toJSON = function () {
-                var object = _super.prototype.toJSON.call(this);
-                object["text"] = this.text;
-                return object;
-            };
-            Text.fromJSON = function (object) {
-                var text = new Text();
-                _super.fromJSON.call(this, object, text);
-                if (object) {
-                    if (object.hasOwnProperty("text")) {
-                        text.text = object["text"];
-                    }
-                }
-                return text;
-            };
-            return Text;
-        }(ChatCard.View));
-        ChatCard.Text = Text;
-        ChatCard.Button = Text; // As there's no difference between the two
-    })(ChatCard = KASClient.ChatCard || (KASClient.ChatCard = {}));
-})(KASClient || (KASClient = {}));
-/// <reference path="./View.ts" />
-var KASClient;
-(function (KASClient) {
-    var ChatCard;
-    (function (ChatCard) {
-        var VerticalContainer = (function (_super) {
-            __extends(VerticalContainer, _super);
-            function VerticalContainer() {
-                var _this = _super !== null && _super.apply(this, arguments) || this;
-                _this.type = "Column";
-                return _this;
-            }
-            return VerticalContainer;
-        }(ChatCard.View));
-        ChatCard.VerticalContainer = VerticalContainer;
-    })(ChatCard = KASClient.ChatCard || (KASClient.ChatCard = {}));
+        UI.KASAttachmentThumbnailView = KASAttachmentThumbnailView;
+    })(UI = KASClient.UI || (KASClient.UI = {}));
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
     var UI;
     (function (UI) {
-        var KASAlbumView = (function (_super) {
+        var State;
+        (function (State) {
+            State[State["AttachmentsAvailable"] = 0] = "AttachmentsAvailable";
+            State[State["AttachmentsDownloading"] = 1] = "AttachmentsDownloading";
+            State[State["AttachmentsDownloadFailed"] = 2] = "AttachmentsDownloadFailed";
+            State[State["AttachmentsNeverDownloaded"] = 3] = "AttachmentsNeverDownloaded";
+        })(State = UI.State || (UI.State = {}));
+        var KASAttachmentView = /** @class */ (function () {
+            function KASAttachmentView() {
+                this.view = null;
+                this.shouldShowRemoveButton = false;
+                this.tapEnabled = false;
+                this.defaultBlurColor = "rgba(0, 0, 0, 0.5)";
+                this.view = KASClient.UI.getElement("div", { "background": "white" });
+            }
+            KASAttachmentView.prototype.getView = function () {
+                return this.view;
+            };
+            // public setState(state: State) {
+            //     switch (state) {
+            //         case State.AttachmentsAvailable:
+            //             //this.populateView();
+            //             break;
+            //         case State.AttachmentsDownloading:
+            //             this.showLoadingIndicator();
+            //             break;
+            //         case State.AttachmentsNeverDownloaded:
+            //             this.showRetryButton();
+            //             break;
+            //         case State.AttachmentsDownloadFailed:
+            //             this.showRetryButton();
+            //             break;
+            //         default:
+            //             break;
+            //     }
+            // }
+            KASAttachmentView.prototype.showLoadingIndicator = function () {
+                this.addLoadingIndicatorToDiv(this.view);
+            };
+            KASAttachmentView.prototype.showRetryButton = function () {
+                this.addRetryButtonToDiv(this.view);
+            };
+            KASAttachmentView.prototype.addLoadingIndicatorToDiv = function (div, blurColor) {
+                if (blurColor === void 0) { blurColor = this.defaultBlurColor; }
+                var containerDiv = this.getStatusViewForState(State.AttachmentsDownloading);
+                KASClient.UI.removeElement(this.blurView);
+                this.blurView = this.getBlurViewWithDiv(containerDiv, blurColor);
+                this.blurView.onclick = function (event) { event.stopPropagation(); };
+                KASClient.UI.addElement(this.blurView, div);
+            };
+            KASAttachmentView.prototype.addRetryButtonToDiv = function (div, blurColor) {
+                if (blurColor === void 0) { blurColor = this.defaultBlurColor; }
+                var containerDiv = this.getStatusViewForState(State.AttachmentsDownloadFailed);
+                KASClient.UI.removeElement(this.blurView);
+                this.blurView = this.getBlurViewWithDiv(containerDiv, blurColor);
+                this.blurView.onclick = this.retryButtonCallback;
+                KASClient.UI.addElement(this.blurView, div);
+            };
+            KASAttachmentView.prototype.addTapToDownloadButtonToDiv = function (div, blurColor) {
+                if (blurColor === void 0) { blurColor = this.defaultBlurColor; }
+                var containerDiv = this.getStatusViewForState(State.AttachmentsNeverDownloaded);
+                KASClient.UI.removeElement(this.blurView);
+                this.blurView = this.getBlurViewWithDiv(containerDiv);
+                this.blurView.onclick = this.retryButtonCallback;
+                KASClient.UI.addElement(this.blurView, div);
+            };
+            KASAttachmentView.prototype.getStatusViewForState = function (state) {
+                var containerDiv = KASClient.UI.getDiv({ "width": "100px", "height": "25px", "margin": "auto", "background": "transparent" });
+                var statusIcon, statusText;
+                var accessibilityString = "";
+                switch (state) {
+                    case State.AttachmentsDownloading:
+                        statusIcon = KASClient.UI.getLoadingSpinner({ "margin": "0 auto" });
+                        accessibilityString += KASClient.Internal.getKASClientString("LoadingText");
+                        break;
+                    case State.AttachmentsNeverDownloaded:
+                        statusIcon = KASClient.UI.getElement("div", this.getLoadingViewAttributes(KASClient.UI.getBase64Src(UI.Assets.tapToDownloadDark)));
+                        statusText = KASClient.UI.getLabel(KASClient.Internal.getKASClientString("KASFormTapToDownloadText"), { "display": "block", "width": "100px", "font-size": KASClient.UI.getScaledFontSize("11px"), "text-align": "center", "color": "lightgray" });
+                        break;
+                    case State.AttachmentsDownloadFailed:
+                        statusIcon = KASClient.UI.getElement("div", this.getLoadingViewAttributes(KASClient.UI.getBase64Src(UI.Assets.retry)));
+                        statusText = KASClient.UI.getLabel(KASClient.Internal.getKASClientString("KASFormTapToRetryText"), { "display": "block", "width": "100px", "font-size": KASClient.UI.getScaledFontSize("11px"), "text-align": "center", "color": "lightgray" });
+                        break;
+                    default:
+                        break;
+                }
+                KASClient.UI.addElement(statusIcon, containerDiv);
+                if (statusText) {
+                    KASClient.UI.setAccessibilityBasic(statusText, true);
+                    accessibilityString += statusText.innerText;
+                    containerDiv.style.height = "40px";
+                    KASClient.UI.addElement(statusText, containerDiv);
+                }
+                KASClient.UI.setAccessibilityBasic(statusIcon, true);
+                KASClient.UI.setAccessibilityBasic(containerDiv, false, UI.KASFormAccessibilityRole.Text, accessibilityString);
+                return containerDiv;
+            };
+            KASAttachmentView.prototype.getBlurViewWithDiv = function (ele, blurColor) {
+                if (blurColor === void 0) { blurColor = this.defaultBlurColor; }
+                var blurView = KASClient.UI.getElement("div", this.getBlurViewAttributes());
+                blurView.style.background = blurColor;
+                KASClient.UI.addElement(ele, blurView);
+                return blurView;
+            };
+            KASAttachmentView.prototype.getLoadingViewAttributes = function (pictureUrl) {
+                return {
+                    "display": "block",
+                    "background": "transparent url('" + pictureUrl + "')",
+                    "margin": "0 auto",
+                    "width": "28px",
+                    "height": "28px",
+                    "background-size": "cover",
+                    "justify-content": "center",
+                    "align-items": "center"
+                };
+            };
+            KASAttachmentView.prototype.getLoadingViewAttributes1 = function () {
+                return {
+                    "position": "absolute",
+                    "display": "block",
+                    "margin": "auto",
+                    "top": "0",
+                    "left": "0",
+                    "bottom": "0",
+                    "right": "0",
+                    "width": "28px",
+                    "height": "28px",
+                    "background-size": "cover",
+                    "justify-content": "center",
+                    "align-items": "center"
+                };
+            };
+            KASAttachmentView.prototype.getBlurViewAttributes = function () {
+                return {
+                    "z-index": "2",
+                    "position": "absolute",
+                    "top": "0",
+                    "left": "0",
+                    "right": "0",
+                    "bottom": "0",
+                    "display": "flex"
+                };
+            };
+            return KASAttachmentView;
+        }());
+        UI.KASAttachmentView = KASAttachmentView;
+    })(UI = KASClient.UI || (KASClient.UI = {}));
+})(KASClient || (KASClient = {}));
+var KASClient;
+(function (KASClient) {
+    var UI;
+    (function (UI) {
+        var KASAttachmentViewModel = /** @class */ (function () {
+            function KASAttachmentViewModel() {
+                this.hasStaticContent = false;
+                this.allLocalPathsAvailable = true;
+                this.allServerPathsAvailable = false;
+                this.downloadProgress = 0;
+                this.isDownloading = false;
+                this.isAutoDownloadEnabled = false;
+                this.isOutgoing = false;
+                this.messageSendStatus = 0;
+                this.enableOnTap = true;
+                this.showRemoveButton = false;
+                this.showLoadingWhileUploads = false;
+                this.height = "180px";
+                this.width = "100%";
+            }
+            return KASAttachmentViewModel;
+        }());
+        UI.KASAttachmentViewModel = KASAttachmentViewModel;
+    })(UI = KASClient.UI || (KASClient.UI = {}));
+})(KASClient || (KASClient = {}));
+var KASClient;
+(function (KASClient) {
+    var UI;
+    (function (UI) {
+        var KASCheckboxView = /** @class */ (function () {
+            function KASCheckboxView(title, isChecked, checkedChangedCallback) {
+                this.title = "";
+                this.checkedChangedCallback = null;
+                this.checkboxInput = null;
+                this.checkboxDefaultValue = false;
+                this.view = null;
+                //Accessibility
+                this.accessibilityAttributes = {};
+                this.title = title;
+                this.checkedChangedCallback = checkedChangedCallback;
+                this.checkboxDefaultValue = isChecked;
+            }
+            KASCheckboxView.prototype.getView = function () {
+                var settingView = KASClient.UI.getElement("div", { "height": "48px", "margin": "0", "display": "flex", "flex-direction": "row", "align-items": "center" });
+                settingView.onclick = function () {
+                    this.checkboxInput.click();
+                    KASClient.UI.setAccessibilityAttribute(settingView, KASClient.UI.KASFormAccessibilityKey.Checked, this.isChecked());
+                }.bind(this, settingView);
+                KASClient.UI.setAccessibilityBasic(settingView, false, KASClient.UI.KASFormAccessibilityRole.Checkbox);
+                KASClient.UI.setAccessibilityAttribute(settingView, KASClient.UI.KASFormAccessibilityKey.Checked, "" + this.checkboxDefaultValue);
+                var titleLabelAttributes = {
+                    "flex": "1",
+                    "color": "#32485f",
+                    "font-size": KASClient.UI.getScaledFontSize("14px")
+                };
+                var titleLabel = KASClient.UI.getElement("label", titleLabelAttributes);
+                titleLabel.innerText = this.title;
+                UI.setAccessibilityBasic(titleLabel, true);
+                KASClient.UI.addElement(titleLabel, settingView);
+                // Checkbox view
+                this.checkboxInput = KASClient.UI.getElement("input");
+                this.checkboxInput.type = "checkbox";
+                this.checkboxInput.checked = this.checkboxDefaultValue;
+                UI.setAccessibilityBasic(this.checkboxInput, true);
+                this.checkboxInput.onclick = function (event) {
+                    event.stopPropagation();
+                };
+                this.checkboxInput.onchange = function (event) {
+                    this.checkedChangedCallback(this.isChecked());
+                }.bind(this);
+                KASClient.UI.addElement(this.checkboxInput, settingView);
+                for (var key in this.accessibilityAttributes) {
+                    UI.setAccessibilityAttribute(settingView, key, this.accessibilityAttributes[key]);
+                }
+                this.view = settingView;
+                return settingView;
+            };
+            KASCheckboxView.prototype.isChecked = function () {
+                return this.checkboxInput.checked;
+            };
+            KASCheckboxView.prototype.setAccessibilityAttribute = function (key, value) {
+                if (this.view != null) {
+                    UI.setAccessibilityAttribute(this.view, key, value);
+                }
+                this.accessibilityAttributes[key] = value;
+            };
+            return KASCheckboxView;
+        }());
+        UI.KASCheckboxView = KASCheckboxView;
+    })(UI = KASClient.UI || (KASClient.UI = {}));
+})(KASClient || (KASClient = {}));
+var KASClient;
+(function (KASClient) {
+    var UI;
+    (function (UI) {
+        var KASInputView = /** @class */ (function () {
+            function KASInputView(header) {
+                this.header = null;
+                this.header = header;
+            }
+            KASInputView.prototype.getView = function () {
+                if (KASClient.isEmptyString(this.header)) {
+                    return UI.getVerticalDiv([this.getInputView()]);
+                }
+                else {
+                    var headerDiv = UI.getLabel(this.header, Object.assign({
+                        "font-size": KASClient.UI.getScaledFontSize("12px"),
+                        "font-weight": "600",
+                        "color": "#32485f",
+                    }, KASClient.UI.getMediumFontAttributes()));
+                    UI.setAccessibilityBasic(headerDiv, false /*isHidden*/);
+                    return UI.getVerticalDiv([headerDiv, UI.getSpace("12px"), this.getInputView()]);
+                }
+            };
+            return KASInputView;
+        }());
+        UI.KASInputView = KASInputView;
+    })(UI = KASClient.UI || (KASClient.UI = {}));
+})(KASClient || (KASClient = {}));
+/// <reference path="./KASInputView.ts" />
+var KASClient;
+(function (KASClient) {
+    var UI;
+    (function (UI) {
+        var KASDateInputView = /** @class */ (function (_super) {
+            __extends(KASDateInputView, _super);
+            /**
+             *
+             * @param header Header text of input view
+             * @param date Default date, In case of null place will be shown.
+             * @param placeHolder Placeholder text, In case of null current date will be shown
+             */
+            function KASDateInputView(header, date, placeHolder, dateChangeCallback) {
+                if (date === void 0) { date = null; }
+                if (placeHolder === void 0) { placeHolder = null; }
+                if (dateChangeCallback === void 0) { dateChangeCallback = null; }
+                var _this = _super.call(this, header) || this;
+                _this.date = null;
+                _this.placeHolder = null;
+                _this.showYear = false;
+                _this.allowPastDate = false;
+                _this.dateTextLabel = null;
+                _this.date = date;
+                _this.placeHolder = placeHolder;
+                _this.dateChangeCallback = dateChangeCallback;
+                return _this;
+            }
+            KASDateInputView.prototype.getInputView = function () {
+                var inputView = KASClient.UI.getElement("div", {
+                    "padding-bottom": "8px",
+                    "border-bottom": "0.5px solid #6f7e8f",
+                    "display": "flex",
+                    "flex-direction": "column"
+                });
+                this.dateTextLabel = KASClient.UI.getLabel("", {
+                    "flex": "1",
+                    "font-size": KASClient.UI.getScaledFontSize("16px"),
+                    "color": "#006ff1",
+                });
+                this.setDate(this.date);
+                KASClient.UI.setAccessibilityBasic(this.dateTextLabel, false, KASClient.UI.KASFormAccessibilityRole.Text);
+                this.datePicker = KASClient.UI.getElement("input", {
+                    "-webkit-appearance": "none",
+                    "border": "none",
+                    "background": "transparent",
+                    "color": "transparent",
+                    "width": "1px",
+                    "height": "1px"
+                });
+                this.datePicker.type = "date";
+                KASClient.UI.setAccessibilityBasic(this.datePicker, true);
+                this.datePicker.onchange = function () {
+                    if (this.invalidDate()) {
+                        this.datePicker.valueAsNumber = new Date().getTime();
+                    }
+                    this.date = new Date(this.datePicker.valueAsNumber);
+                    KASClient.UI.setText(this.dateTextLabel, KASClient.getDateString(this.date, true, false, this.showYear));
+                    if (this.dateChangeCallback) {
+                        this.dateChangeCallback(this.datePicker.valueAsNumber);
+                    }
+                }.bind(this);
+                this.dateTextLabel.onclick = function () {
+                    if (KASClient.getPlatform() == KASClient.Platform.Android) {
+                        this.datePicker.click();
+                    }
+                    else {
+                        this.datePicker.focus();
+                    }
+                }.bind(this);
+                var dueDateView = KASClient.UI.getHorizontalDiv([this.dateTextLabel, this.datePicker]);
+                KASClient.UI.addElement(dueDateView, inputView);
+                return inputView;
+            };
+            KASDateInputView.prototype.invalidDate = function () {
+                return (this.datePicker.value == null || this.datePicker.value == "" ||
+                    (!this.allowPastDate && this.datePicker.valueAsNumber < this.getCurrentDateWithoutTime()));
+            };
+            KASDateInputView.prototype.getDate = function () {
+                if (this.invalidDate()) {
+                    return this.getCurrentDateWithoutTime();
+                }
+                return this.datePicker.valueAsNumber;
+            };
+            KASDateInputView.prototype.setDate = function (date) {
+                this.date = date;
+                var dateText;
+                if (this.date != null) {
+                    dateText = KASClient.getDateString(this.date, true, false, this.showYear);
+                }
+                else if (this.placeHolder != null) {
+                    dateText = this.placeHolder;
+                }
+                else {
+                    var date = new Date();
+                    date.setUTCHours(0, 0, 0, 0);
+                    dateText = KASClient.getDateString(date, true, false, this.showYear);
+                }
+                this.dateTextLabel.innerText = dateText;
+            };
+            KASDateInputView.prototype.getCurrentDateWithoutTime = function () {
+                var date = new Date();
+                date.setUTCHours(0, 0, 0, 0);
+                return date.getTime();
+            };
+            return KASDateInputView;
+        }(UI.KASInputView));
+        UI.KASDateInputView = KASDateInputView;
+    })(UI = KASClient.UI || (KASClient.UI = {}));
+})(KASClient || (KASClient = {}));
+var KASClient;
+(function (KASClient) {
+    var UI;
+    (function (UI) {
+        var KASImageGridAlbumViewRenderStyle;
+        (function (KASImageGridAlbumViewRenderStyle) {
+            KASImageGridAlbumViewRenderStyle[KASImageGridAlbumViewRenderStyle["GRID"] = 0] = "GRID";
+            KASImageGridAlbumViewRenderStyle[KASImageGridAlbumViewRenderStyle["CAROUSEL"] = 1] = "CAROUSEL";
+        })(KASImageGridAlbumViewRenderStyle = UI.KASImageGridAlbumViewRenderStyle || (UI.KASImageGridAlbumViewRenderStyle = {}));
+        /**
+         * KASImageGridAlbumView provides an album like view for a given set of
+         * image attachments. It can be configured to render an album as a simple
+         * grid of images or as a carousel which can be scrolled horizontally.
+         *
+         * To render the album as a carousel, set the GRID_ALBUM_VIEW_RENDER_STYLE
+         * property to KASImageGridAlbumViewRenderStyle.CAROUSEL in props dictionary
+         * when initializing.
+         *
+         * The album can be rendered in preview mode where a list of images are
+         * expected as input. If preview mode is set to false, there will be an option
+         * to pick images from camera or gallery (which can be further controlled using
+         * ImagePickerSource).
+         *
+         * Any changes(add/remove) to the image attachments provided to during initialization
+         * will fire the onChangeCallback handler.
+         */
+        var KASImageGridAlbumView = /** @class */ (function (_super) {
+            __extends(KASImageGridAlbumView, _super);
+            function KASImageGridAlbumView(header, imageAttachments, previewMode, props, onChangeCallback) {
+                var _this = _super.call(this, header) || this;
+                _this.imageAttachments = [];
+                _this.previewMode = false;
+                _this.DEFAULT_MAX_IMAGE_COUNT = 10;
+                _this.maxImageCount = _this.DEFAULT_MAX_IMAGE_COUNT;
+                _this.imagePickerSource = KASClient.ImagePickerSource.All;
+                _this.props = JSON.parse("{}");
+                _this.gridAlbumViewRenderStyle = KASImageGridAlbumViewRenderStyle.GRID;
+                _this.imagesPendingLoad = [];
+                /*
+                 * The scroll end detection timeout is the maximum interval we will wait
+                 * for between two scroll events before we interpret that scrolling has
+                 * stopped. This value of 100ms is a fair estimate because scroll events
+                 * are fired at intervals of around 50ms.
+                 */
+                _this.DEFAULT_SCROLL_END_DETECTION_TIMEOUT_IN_MS = 100;
+                /*
+                 * Lazy loading prevents loading of remote images when they are not in
+                 * the viewport. When these images come into view, then the image is
+                 * loaded. This helps in improving data usage and performance.
+                 *
+                 * This property is for internal use for development/testing purposes
+                 * and should always true for all users.
+                 */
+                _this.enableLazyLoading = true;
+                _this.albumContainsRemoteImages = false;
+                if (imageAttachments != null) {
+                    _this.imageAttachments = imageAttachments;
+                }
+                _this.previewMode = previewMode;
+                _this.props = props;
+                _this.onChangeCallback = onChangeCallback;
+                _this.gridAlbumViewRenderStyle = _this.getGridAlbumViewRenderStyle(props);
+                _this.container = UI.getElement("div", _this.getContainerStyleAttributes());
+                return _this;
+            }
+            KASImageGridAlbumView.prototype.getGridAlbumViewRenderStyle = function (props) {
+                if (!props || !props[KASImageGridAlbumView.GRID_ALBUM_VIEW_RENDER_STYLE]) {
+                    return KASImageGridAlbumViewRenderStyle.GRID;
+                }
+                var viewRenderStyle = props[KASImageGridAlbumView.GRID_ALBUM_VIEW_RENDER_STYLE];
+                if (viewRenderStyle == 1) {
+                    return KASImageGridAlbumViewRenderStyle.CAROUSEL;
+                }
+                else {
+                    return KASImageGridAlbumViewRenderStyle.GRID;
+                }
+            };
+            KASImageGridAlbumView.prototype.getInputView = function () {
+                UI.clearElement(this.container);
+                switch (this.gridAlbumViewRenderStyle) {
+                    case KASImageGridAlbumViewRenderStyle.CAROUSEL:
+                        this.populateCarousel();
+                        break;
+                    case KASImageGridAlbumViewRenderStyle.GRID:
+                    default:
+                        this.populateGrid();
+                        break;
+                }
+                if (this.previewMode && this.enableLazyLoading && this.albumContainsRemoteImages) {
+                    this.scrollHandler = this.reloadImages.bind(this);
+                    if (this.gridAlbumViewRenderStyle == KASImageGridAlbumViewRenderStyle.CAROUSEL) {
+                        this.container.addEventListener('scroll', this.scrollHandler);
+                    }
+                    document.addEventListener('scroll', this.scrollHandler);
+                    this.reloadImages();
+                }
+                return this.container;
+            };
+            KASImageGridAlbumView.prototype.prepareForDOMRemoval = function () {
+                if (this.scrollHandler) {
+                    document.removeEventListener('scroll', this.scrollHandler);
+                }
+            };
+            KASImageGridAlbumView.prototype.populateGrid = function () {
+                UI.addCSS(this.container, this.getContainerStyleAttributes());
+                var cellCount = this.imageAttachments.length + (this.shouldShowAddImageButton() ? 1 : 0);
+                for (var attachmentIndex = 0; attachmentIndex < cellCount; attachmentIndex++) {
+                    var cellView = UI.getElement("div");
+                    if (attachmentIndex < this.imageAttachments.length) {
+                        var imageAttachment = this.imageAttachments[attachmentIndex];
+                        var image = this.getImageViewForGrid(attachmentIndex, imageAttachment);
+                        UI.addElement(image, cellView);
+                    }
+                    else if (attachmentIndex == this.imageAttachments.length && this.shouldShowAddImageButton()) {
+                        UI.addElement(this.getAddImageButtonView((this.imagePickerSource == KASClient.ImagePickerSource.CameraBack) || (this.imagePickerSource == KASClient.ImagePickerSource.CameraFront)), cellView);
+                    }
+                    UI.addElement(cellView, this.container);
+                }
+            };
+            KASImageGridAlbumView.prototype.populateCarousel = function () {
+                UI.addCSS(this.container, this.getContainerStyleAttributes());
+                var cellCount = this.imageAttachments.length + (this.shouldShowAddImageButton() ? 1 : 0);
+                var tableView = UI.getTable();
+                var tableRow = UI.getTableRow();
+                for (var attachmentIndex = 0; attachmentIndex < cellCount; attachmentIndex++) {
+                    var tableData = UI.getTableDataCell();
+                    if (attachmentIndex < this.imageAttachments.length) {
+                        var imageAttachment = this.imageAttachments[attachmentIndex];
+                        var image = this.getImageViewForGrid(attachmentIndex, imageAttachment);
+                        UI.addElement(image, tableData);
+                    }
+                    else if (attachmentIndex == this.imageAttachments.length && this.shouldShowAddImageButton()) {
+                        UI.addElement(this.getAddImageButtonView((this.imagePickerSource == KASClient.ImagePickerSource.CameraBack) || (this.imagePickerSource == KASClient.ImagePickerSource.CameraFront)), tableData);
+                    }
+                    UI.addElement(tableData, tableRow);
+                }
+                UI.addElement(tableRow, tableView);
+                UI.addElement(tableView, this.container);
+            };
+            KASImageGridAlbumView.prototype.setMaxImageCount = function (maxImageCount) {
+                this.maxImageCount = maxImageCount;
+            };
+            KASImageGridAlbumView.prototype.setImagePickerSource = function (imagePickerSource) {
+                this.imagePickerSource = imagePickerSource;
+            };
+            KASImageGridAlbumView.prototype.getSelectedAttachments = function () {
+                return this.imageAttachments;
+            };
+            KASImageGridAlbumView.prototype.shouldShowAddImageButton = function () {
+                if (this.previewMode) {
+                    return false;
+                }
+                else {
+                    if (this.imageAttachments.length < this.maxImageCount) {
+                        return true;
+                    }
+                    else {
+                        return false;
+                    }
+                }
+            };
+            KASImageGridAlbumView.prototype.getAddImageButtonView = function (cameraOnly) {
+                if (cameraOnly === void 0) { cameraOnly = false; }
+                var addImageButtonContainer = UI.getElement("div");
+                var addImageButton;
+                if (this.imageAttachments.length > 0) {
+                    addImageButton = UI.getBase64Image(UI.Assets.addImageGridAlbum, this.getAddImageButtonStyleAttributes());
+                    UI.setAccessibilityBasic(addImageButton, true);
+                    KASClient.UI.setAccessibilityBasic(addImageButtonContainer, false, KASClient.UI.KASFormAccessibilityRole.Button, KASClient.Internal.getKASClientString("AddMoreImages"));
+                }
+                else {
+                    if (cameraOnly) {
+                        addImageButton = UI.getBase64Image(UI.Assets.addCameraImageEmptyGridAlbum);
+                        KASClient.UI.setAccessibilityBasic(addImageButtonContainer, false, KASClient.UI.KASFormAccessibilityRole.Button, KASClient.Internal.getKASClientString("CameraPicker"));
+                    }
+                    else {
+                        addImageButton = UI.getBase64Image(UI.Assets.addImageEmptyGridAlbum);
+                        KASClient.UI.setAccessibilityBasic(addImageButtonContainer, false, KASClient.UI.KASFormAccessibilityRole.Button, KASClient.Internal.getKASClientString("ImagePicker"));
+                    }
+                    UI.addCSS(addImageButton, this.getEmptyGridAddImageButtonStyleAttributes());
+                }
+                UI.setAccessibilityBasic(addImageButton, true);
+                var self = this;
+                UI.addClickEvent(addImageButton, function () {
+                    self.props[KASClient.KASAttachmentListQuestionConfig.MAX_IMAGE_COUNT_KEY] = self.maxImageCount - self.imageAttachments.length;
+                    KASClient.App.showAttachmentPickerAsync([KASClient.KASAttachmentType.Image], self.props, function (selectedAttachments, error) {
+                        if (error != null) {
+                            return;
+                        }
+                        self.imageAttachments = self.imageAttachments.concat(selectedAttachments);
+                        self.imagePickerSource = self.props[KASClient.KASAttachmentListQuestionConfig.IMAGE_SOURCE_KEY];
+                        self.getInputView();
+                        self.onChangeCallback(self.imageAttachments);
+                    });
+                });
+                UI.addElement(addImageButton, addImageButtonContainer);
+                return addImageButtonContainer;
+            };
+            KASImageGridAlbumView.prototype.getImageViewForGrid = function (attachmentIndex, imageAttachment) {
+                var path = imageAttachment.localPath;
+                if (KASClient.isEmptyString(path)) {
+                    path = imageAttachment.thumbnailServerUrl;
+                }
+                if (KASClient.isEmptyString(path)) {
+                    path = imageAttachment.serverPath;
+                }
+                var image;
+                if (this.previewMode) {
+                    if (KASClient.isRemoteURL(path) && this.enableLazyLoading) {
+                        this.albumContainsRemoteImages = true;
+                        image = UI.getBase64Image(UI.Assets.gridAlbumImagePlaceHolder, this.getImageStyleAttributes());
+                        UI.addCSS(image, this.getPlaceHolderBorderStyleAttributes());
+                        image.setAttribute("data-src", path);
+                        this.imagesPendingLoad.push(image);
+                    }
+                    else {
+                        image = UI.getImage(path, this.getImageStyleAttributes());
+                        UI.addCSS(image, this.getImageBorderStyleAttributes());
+                    }
+                }
+                else {
+                    image = UI.getImage(path, this.getImageStyleAttributes());
+                    UI.addCSS(image, this.getImageBorderStyleAttributes());
+                }
+                image.onclick = function (index, e) {
+                    var urlList = [];
+                    for (var i = 0; i < this.imageAttachments.length; i++) {
+                        var path = this.imageAttachments[i].localPath;
+                        if (KASClient.isEmptyString(path)) {
+                            path = this.imageAttachments[i].serverPath;
+                        }
+                        urlList.push(path);
+                    }
+                    KASClient.App.showImageImmersiveView(urlList, index);
+                }.bind(this, attachmentIndex);
+                if (!this.previewMode) {
+                    var removeImageIcon = UI.getBase64Image(UI.Assets.removeImageGridAlbum, this.getRemoveImageIconStyleAttributes());
+                    removeImageIcon.onclick = function (attachmentIndex, e) {
+                        KASClient.removeElementFromArray(this.imageAttachments, attachmentIndex);
+                        this.getInputView();
+                        this.onChangeCallback(this.imageAttachments);
+                    }.bind(this, attachmentIndex);
+                    KASClient.UI.setAccessibilityBasic(removeImageIcon, false, KASClient.UI.KASFormAccessibilityRole.Button, KASClient.Internal.getKASClientString("RemoveImage") + (attachmentIndex + 1));
+                    var imageContainer = UI.getElement("div", this.getEditModeImageContainerAttributes());
+                    UI.addElement(image, imageContainer);
+                    KASClient.UI.setAccessibilityBasic(image, false, KASClient.UI.KASFormAccessibilityRole.Image, KASClient.Internal.getKASClientString("Image") + (attachmentIndex + 1));
+                    UI.addElement(removeImageIcon, imageContainer);
+                    return imageContainer;
+                }
+                else {
+                    KASClient.UI.setAccessibilityBasic(image, false, KASClient.UI.KASFormAccessibilityRole.Image, KASClient.Internal.getKASClientString("Image") + (attachmentIndex + 1));
+                    return image;
+                }
+            };
+            KASImageGridAlbumView.prototype.reloadImages = function () {
+                if (this.scrollEndDetectionTimer) {
+                    clearTimeout(this.scrollEndDetectionTimer);
+                }
+                if (this.imagesPendingLoad.length == 0 && this.scrollHandler) {
+                    if (this.gridAlbumViewRenderStyle == KASImageGridAlbumViewRenderStyle.CAROUSEL) {
+                        this.container.removeEventListener('scroll', this.scrollHandler);
+                    }
+                    document.removeEventListener('scroll', this.scrollHandler);
+                    return;
+                }
+                this.scrollEndDetectionTimer = setTimeout(function () {
+                    if (this.isViewInViewPort(this.container)) {
+                        var processedImages = [];
+                        for (var loadIndex = 0; loadIndex < this.imagesPendingLoad.length; loadIndex++) {
+                            var image = this.imagesPendingLoad[loadIndex];
+                            if (this.isViewInViewPort(image)) {
+                                image.setAttribute('src', image.getAttribute('data-src'));
+                                UI.addCSS(image, this.getImageBorderStyleAttributes());
+                                image.removeAttribute('data-src');
+                                processedImages.push(image);
+                            }
+                        }
+                        for (var removeIndex = 0; removeIndex < processedImages.length; removeIndex++) {
+                            var refIndex = this.imagesPendingLoad.indexOf(processedImages[removeIndex]);
+                            KASClient.removeElementFromArray(this.imagesPendingLoad, refIndex);
+                        }
+                    }
+                }.bind(this), this.DEFAULT_SCROLL_END_DETECTION_TIMEOUT_IN_MS);
+            };
+            KASImageGridAlbumView.prototype.isViewInViewPort = function (view) {
+                if (!view) {
+                    return false;
+                }
+                var rect = view.getBoundingClientRect(), vWidth = window.innerWidth || document.documentElement.clientWidth, vHeight = window.innerHeight || document.documentElement.clientHeight, efp = function (x, y) { return document.elementFromPoint(x, y); };
+                // Return false if it's not in the viewport
+                if (rect.right < 0 || rect.bottom < 0
+                    || rect.left > vWidth || rect.top > vHeight)
+                    return false;
+                if (!view.parentElement) {
+                    return false;
+                }
+                // Return true if any of its four corners are visible
+                return (view.parentElement.contains(efp(rect.left, rect.top))
+                    || view.parentElement.contains(efp(rect.right, rect.top))
+                    || view.parentElement.contains(efp(rect.right, rect.bottom))
+                    || view.parentElement.contains(efp(rect.left, rect.bottom)));
+            };
+            KASImageGridAlbumView.prototype.getContainerStyleAttributes = function () {
+                if (this.gridAlbumViewRenderStyle == KASImageGridAlbumViewRenderStyle.CAROUSEL) {
+                    return {
+                        "display": "grid",
+                        "grid-template-columns": "10px",
+                        "overflow": "scroll",
+                        "-webkit-overflow-scrolling": "touch"
+                    };
+                }
+                else {
+                    return {
+                        "display": "flex",
+                        "align-items": "flex-start",
+                        "flex-wrap": "wrap"
+                    };
+                }
+            };
+            KASImageGridAlbumView.prototype.getImageStyleAttributes = function () {
+                return {
+                    "width": "80px",
+                    "height": "80px",
+                    "object-fit": "cover",
+                    "border-radius": "4px",
+                    "margin-left": "4px",
+                    "margin-top": "4px",
+                    "box-sizing": "border-box",
+                    "-webkit-box-sizing": "border-box",
+                    "-moz-border-box": "border-box"
+                };
+            };
+            KASImageGridAlbumView.prototype.getImageBorderStyleAttributes = function () {
+                return {
+                    "border": "1.5px solid #e0e3e7"
+                };
+            };
+            KASImageGridAlbumView.prototype.getPlaceHolderBorderStyleAttributes = function () {
+                return {
+                    "border": "none"
+                };
+            };
+            KASImageGridAlbumView.prototype.getEditModeImageContainerAttributes = function () {
+                return {
+                    "position": "relative",
+                    "height": "84px",
+                    "width": "84px"
+                };
+            };
+            KASImageGridAlbumView.prototype.getRemoveImageIconStyleAttributes = function () {
+                return {
+                    "position": "absolute",
+                    "left": "66px",
+                    "top": "8px",
+                    "height": "14px",
+                    "width": "14px"
+                };
+            };
+            KASImageGridAlbumView.prototype.getEmptyGridAddImageButtonStyleAttributes = function () {
+                return {
+                    "width": "92px",
+                    "height": "92px",
+                    "object-fit": "cover"
+                };
+            };
+            KASImageGridAlbumView.prototype.getAddImageButtonStyleAttributes = function () {
+                return {
+                    "width": "80px",
+                    "height": "80px",
+                    "object-fit": "cover",
+                    "margin-left": "4px",
+                    "margin-top": "4px"
+                };
+            };
+            KASImageGridAlbumView.GRID_ALBUM_VIEW_RENDER_STYLE = "GRID_ALBUM_VIEW_RENDER_STYLE";
+            return KASImageGridAlbumView;
+        }(UI.KASInputView));
+        UI.KASImageGridAlbumView = KASImageGridAlbumView;
+    })(UI = KASClient.UI || (KASClient.UI = {}));
+})(KASClient || (KASClient = {}));
+/// <reference path="./KASInputView.ts" />
+var KASClient;
+(function (KASClient) {
+    var UI;
+    (function (UI) {
+        var KASPhoneNumberInputView = /** @class */ (function (_super) {
+            __extends(KASPhoneNumberInputView, _super);
+            function KASPhoneNumberInputView(header, countryPhoneCode, phoneNumber) {
+                var _this = _super.call(this, header) || this;
+                _this.countryPhoneCode = 0;
+                _this.phoneNumber = "";
+                _this.countryPhoneCodesList = [];
+                _this.phoneNumberInput = null;
+                _this.countryPhoneCode = countryPhoneCode;
+                _this.phoneNumber = phoneNumber;
+                _this.countryPhoneCodesList = KASClient.KASCountryPhoneCode.getAllCountryPhoneCodes();
+                return _this;
+            }
+            KASPhoneNumberInputView.prototype.getSelectedCountryCode = function () {
+                return this.countryPhoneCode;
+            };
+            KASPhoneNumberInputView.prototype.getPhoneNumber = function () {
+                return this.phoneNumber;
+            };
+            KASPhoneNumberInputView.prototype.setPhoneNumber = function (phoneNumber) {
+                this.phoneNumber = phoneNumber;
+                this.phoneNumberInput.value = this.phoneNumber;
+            };
+            KASPhoneNumberInputView.prototype.getInputView = function () {
+                var phoneNumberInputViewContainerAttrs = {
+                    "display": "flex",
+                };
+                var phoneNumberInputViewContainer = KASClient.UI.getElement("div", phoneNumberInputViewContainerAttrs);
+                var countryPhoneCodeContainerAttrs = {
+                    "width": "80px",
+                    "border-bottom": "1px solid #e0e3e7",
+                    "display": "flex",
+                    "justify-content": "space-around"
+                };
+                var countryPhoneCodeContainer = KASClient.UI.getElement("div", countryPhoneCodeContainerAttrs);
+                var countryCodeInputAttrs = {
+                    "color": "#32495f",
+                    "font-size": KASClient.UI.getScaledFontSize("16px")
+                };
+                var countryPhoneCodeInput = KASClient.UI.getLabel("", countryCodeInputAttrs);
+                countryPhoneCodeInput.id = "countryPhoneCodeInputDiv";
+                if (this.countryPhoneCode > 0) {
+                    countryPhoneCodeInput.innerHTML = KASClient.KASCountryPhoneCode.getFormattedCountryPhoneCodeForCountry(this.countryPhoneCode, false);
+                }
+                else {
+                    countryPhoneCodeInput.innerText = "+91";
+                    this.countryPhoneCode = 91;
+                }
+                countryPhoneCodeContainer.onclick = function () {
+                    var countryPhoneCodeSelectionPopup = KASClient.UI.getAlertDialogWithDiv(this.getCountryCodeDropdown(), true, null);
+                    countryPhoneCodeSelectionPopup.id = "countryPhoneCodeSelectionPopup";
+                    countryPhoneCodeSelectionPopup.style.display = "block";
+                    this.setBasePageAccessibilityHidden(true);
+                    KASClient.UI.addElement(countryPhoneCodeSelectionPopup, document.body);
+                    KASClient.Internal.screenChanged("");
+                    countryPhoneCodeSelectionPopup.onclick = function () {
+                        var viewTapped = (event.target);
+                        var dropDownView = this.countryCodeDropDown.getView();
+                        if (!dropDownView.contains(viewTapped)) {
+                            countryPhoneCodeSelectionPopup.remove();
+                            this.setBasePageAccessibilityHidden(false);
+                            KASClient.Internal.screenChanged("");
+                        }
+                    }.bind(this);
+                }.bind(this);
+                KASClient.UI.addElement(countryPhoneCodeInput, countryPhoneCodeContainer);
+                var dropDownOpenButton = KASClient.UI.getBase64Image(KASClient.UI.Assets.dropDownExpand, { "width": "10px", "margin": "auto 0", "object-fit": "contain" });
+                UI.setAccessibilityBasic(dropDownOpenButton, true);
+                UI.setAccessibilityBasic(countryPhoneCodeContainer, false, UI.KASFormAccessibilityRole.Text, KASClient.Internal.getKASClientString("CountryCodeAccessibilityLabel", "+" + this.countryPhoneCode));
+                KASClient.UI.addElement(dropDownOpenButton, countryPhoneCodeContainer);
+                KASClient.UI.addElement(countryPhoneCodeContainer, phoneNumberInputViewContainer);
+                var phoneNumberInputAttrs = {
+                    "margin-left": "10px",
+                    "-webkit-appearance": "none",
+                    "border-radius": "0px",
+                    "border": "none",
+                    "border-bottom": "solid 1px #006ff1",
+                    "margin-bottom": "0px",
+                    "margin-top": "0px",
+                    "width": "100%",
+                    "color": "#32495f",
+                    "font-size": KASClient.UI.getScaledFontSize("18px"),
+                    "padding": "0px"
+                };
+                this.phoneNumberInput = document.createElement("input");
+                KASClient.UI.addCSS(this.phoneNumberInput, phoneNumberInputAttrs);
+                this.phoneNumberInput.type = "tel";
+                this.phoneNumberInput.maxLength = 32;
+                this.phoneNumberInput.value = this.phoneNumber;
+                this.phoneNumberInput.oninput = function () {
+                    if (!KASClient.isEmptyString(this.phoneNumberInput.value)) {
+                        this.phoneNumber = this.phoneNumberInput.value;
+                    }
+                    else {
+                        this.phoneNumber = "";
+                    }
+                    if (this.onChangeCallback) {
+                        this.onChangeCallback(new KASClient.KASPhoneNumber(this.countryPhoneCode, this.phoneNumber));
+                    }
+                }.bind(this);
+                this.phoneNumberInput.onfocus = function () {
+                    KASClient.UI.addCSS(this.phoneNumberInput, { "border-bottom": "solid 1.5px #00a1ff" });
+                    if (this.onFocusCallback) {
+                        this.onFocusCallback(new KASClient.KASPhoneNumber(this.countryPhoneCode, this.phoneNumber));
+                    }
+                }.bind(this, this.phoneNumberInput);
+                this.phoneNumberInput.onblur = function () {
+                    if (this.onBlurCallback) {
+                        this.onBlurCallback(new KASClient.KASPhoneNumber(this.countryPhoneCode, this.phoneNumber));
+                    }
+                }.bind(this);
+                UI.setAccessibilityBasic(this.phoneNumberInput, false, UI.KASFormAccessibilityRole.None, KASClient.Internal.getKASClientString("PhoneNumberAccessibilityLabel"));
+                KASClient.UI.addElement(this.phoneNumberInput, phoneNumberInputViewContainer);
+                return phoneNumberInputViewContainer;
+            };
+            KASPhoneNumberInputView.prototype.setBasePageAccessibilityHidden = function (hidden) {
+                for (var i = 0; i < document.body.childElementCount; i++) {
+                    UI.setAccessibilityBasic(document.body.children.item(i), hidden);
+                }
+            };
+            KASPhoneNumberInputView.prototype.countryPhoneCodeSelected = function (index, optionText, isUnSelect) {
+                this.countryPhoneCode = this.countryPhoneCodesList[index];
+                var countryPhoneCodeInputDiv = document.getElementById("countryPhoneCodeInputDiv");
+                countryPhoneCodeInputDiv.innerText = KASClient.KASCountryPhoneCode.getFormattedCountryPhoneCodeForCountry(this.countryPhoneCode, false);
+                UI.setAccessibilityBasic(countryPhoneCodeInputDiv.parentElement, false, UI.KASFormAccessibilityRole.Text, KASClient.Internal.getKASClientString("CountryCodeAccessibilityLabel", "+" + this.countryPhoneCode));
+                var countryPhoneCodeSelectionPopup = document.getElementById("countryPhoneCodeSelectionPopup");
+                countryPhoneCodeSelectionPopup.remove();
+                this.setBasePageAccessibilityHidden(false);
+                KASClient.Internal.screenChanged("");
+                if (this.onChangeCallback) {
+                    this.onChangeCallback(new KASClient.KASPhoneNumber(this.countryPhoneCode, this.phoneNumber));
+                }
+                if (this.onBlurCallback) {
+                    this.onBlurCallback(new KASClient.KASPhoneNumber(this.countryPhoneCode, this.phoneNumber));
+                }
+            };
+            KASPhoneNumberInputView.prototype.getCountryCodeDropdown = function () {
+                var headerView = UI.getLabel(KASClient.Internal.getKASClientString("CountryCodeDropdownTitle"), {
+                    "padding-bottom": "9px",
+                    "padding-left": "12px",
+                    "padding-top": "8px",
+                    "font-size": "12px",
+                    "color": "#727d88",
+                    "height": "14px"
+                });
+                this.countryCodeDropDown = new KASClient.UI.KASFormDropDown(new KASClient.UI.KASDropDownModel(KASClient.KASCountryPhoneCode.getAllFormattedCountryPhoneCodes(), [], false, false), headerView);
+                this.countryCodeDropDown.rowSelectCallBack = function (index, optionText, isUnSelect) {
+                    this.countryPhoneCodeSelected(index, optionText, isUnSelect);
+                }.bind(this);
+                return this.countryCodeDropDown.getView();
+            };
+            return KASPhoneNumberInputView;
+        }(UI.KASInputView));
+        UI.KASPhoneNumberInputView = KASPhoneNumberInputView;
+    })(UI = KASClient.UI || (KASClient.UI = {}));
+})(KASClient || (KASClient = {}));
+var KASClient;
+(function (KASClient) {
+    var UI;
+    (function (UI) {
+        var KASTextInputView = /** @class */ (function (_super) {
+            __extends(KASTextInputView, _super);
+            function KASTextInputView(title, inputText, placeholder, inputFontSize, titleAttributes) {
+                if (titleAttributes === void 0) { titleAttributes = null; }
+                var _this = _super.call(this, "") || this;
+                _this.inputView = null;
+                _this.inputText = null;
+                _this.title = "";
+                _this.placeholder = "";
+                _this.inputFontSize = 20;
+                _this.titleAttributes = null;
+                _this.maxLength = -1;
+                _this.inputChangeCallback = null;
+                _this.onFocusCallback = null;
+                _this.onBlurCallback = null;
+                _this.title = title;
+                _this.inputText = inputText;
+                _this.placeholder = placeholder;
+                _this.inputFontSize = inputFontSize;
+                _this.titleAttributes = titleAttributes;
+                return _this;
+            }
+            KASTextInputView.prototype.getInputView = function () {
+                var view = KASClient.UI.getElement("div", { "display": "flex", "flex-direction": "column" });
+                var attributes = this.titleAttributes ? this.titleAttributes : {
+                    "color": "#000000",
+                    "font-size": KASClient.UI.getScaledFontSize("12px"),
+                    "font-weight": "500"
+                };
+                var titleView = KASClient.UI.getLabel(this.title, attributes);
+                var titleId = "titleId" + new Date().getTime();
+                KASClient.UI.setId(titleView, titleId);
+                KASClient.UI.setAccessibilityBasic(titleView, false, KASClient.UI.KASFormAccessibilityRole.Text);
+                KASClient.UI.addElement(titleView, view);
+                var inputViewAttributes = {
+                    "font-size": KASClient.UI.getScaledFontSize(this.inputFontSize + "px"),
+                    "margin-top": "16px",
+                    "margin-bottom": "16px",
+                    "padding-bottom": "8px",
+                    "color": "#32485f",
+                    "border-bottom": "solid .5px #d4d8db"
+                };
+                if (this.maxLength > 0) {
+                    inputViewAttributes["max-length"] = this.maxLength;
+                }
+                this.inputView = KASClient.UI.getContentEditableSpan(this.inputText, this.placeholder, inputViewAttributes, function () {
+                    if (this.inputChangeCallback) {
+                        this.inputChangeCallback();
+                    }
+                }.bind(this));
+                this.inputView.onfocus = function () {
+                    KASClient.UI.addCSS(this.inputView, { "border-bottom": "solid 1.5px #00a1ff" });
+                    if (this.onFocusCallback)
+                        this.onFocusCallback();
+                }.bind(this);
+                this.inputView.onblur = function () {
+                    KASClient.UI.addCSS(this.inputView, { "border-bottom": "solid .5px #d4d8db" });
+                    if (this.onBlurCallback)
+                        this.onBlurCallback();
+                }.bind(this);
+                KASClient.UI.setAccessibilityBasic(this.inputView, false, KASClient.UI.KASFormAccessibilityRole.TextBox);
+                KASClient.UI.setAccessibilityAttribute(this.inputView, KASClient.UI.KASFormAccessibilityKey.LabelledBy, titleId);
+                KASClient.UI.addElement(this.inputView, view);
+                return view;
+            };
+            KASTextInputView.prototype.getInputText = function () {
+                return this.inputView.innerText;
+            };
+            KASTextInputView.prototype.setInputText = function (text) {
+                this.inputView.innerText = text;
+            };
+            KASTextInputView.prototype.setFocus = function (focus) {
+                if (focus) {
+                    this.inputView.focus();
+                }
+                else {
+                    this.inputView.blur();
+                }
+            };
+            KASTextInputView.prototype.setMaxLength = function (length) {
+                this.maxLength = length;
+            };
+            KASTextInputView.prototype.setCSSAttribute = function (attribute, value) {
+                this.inputView.style[attribute] = value;
+            };
+            return KASTextInputView;
+        }(UI.KASInputView));
+        UI.KASTextInputView = KASTextInputView;
+    })(UI = KASClient.UI || (KASClient.UI = {}));
+})(KASClient || (KASClient = {}));
+/// <reference path="./KASInputView.ts" />
+var KASClient;
+(function (KASClient) {
+    var UI;
+    (function (UI) {
+        var KASTimeInputView = /** @class */ (function (_super) {
+            __extends(KASTimeInputView, _super);
+            /**
+             *
+             * @param header Header text of input view
+             * @param Default Time in minutes, In case of null place will be shown
+             * @param placeHolder Placeholder text, In case of null current time will be shown
+             */
+            function KASTimeInputView(header, time, placeHolder, timeChangeCallback, minTime, defaultTime) {
+                if (placeHolder === void 0) { placeHolder = null; }
+                if (timeChangeCallback === void 0) { timeChangeCallback = null; }
+                var _this = _super.call(this, header) || this;
+                _this.hour = null;
+                _this.minute = null;
+                _this.placeHolder = null;
+                _this.use24HourFormat = false;
+                time = time % 1440;
+                _this.hour = parseInt("" + time / 24);
+                _this.minute = time % 60;
+                _this.placeHolder = placeHolder;
+                _this.timeChangeCallback = timeChangeCallback;
+                _this.minTime = minTime;
+                _this.defaultTime = defaultTime;
+                return _this;
+            }
+            KASTimeInputView.prototype.getInputView = function () {
+                var inputView = KASClient.UI.getElement("div", {
+                    "padding-bottom": "8px",
+                    "border-bottom": "0.5px solid #6f7e8f",
+                    "display": "flex",
+                    "flex-direction": "column"
+                });
+                var timeText;
+                if (this.hour != null && this.minute != null) {
+                    timeText = this.getTimeString(this.hour, this.minute);
+                }
+                else if (this.placeHolder != null) {
+                    timeText = this.placeHolder;
+                }
+                else {
+                    var date = new Date();
+                    timeText = this.getTimeString(date.getHours(), date.getMinutes());
+                }
+                var timeTextLabel = KASClient.UI.getLabel(timeText, {
+                    "flex": "1",
+                    "font-size": KASClient.UI.getScaledFontSize("16px"),
+                    "color": "#006ff1",
+                });
+                KASClient.UI.setAccessibilityBasic(timeTextLabel, false, KASClient.UI.KASFormAccessibilityRole.Text);
+                this.timePicker = KASClient.UI.getElement("input", {
+                    "-webkit-appearance": "none",
+                    "border": "none",
+                    "background": "transparent",
+                    "color": "transparent",
+                    "width": "1px",
+                    "height": "1px"
+                });
+                this.timePicker.type = "time";
+                KASClient.UI.setAccessibilityBasic(this.timePicker, true);
+                this.timePicker.onchange = function () {
+                    if (isNaN(this.timePicker.valueAsNumber)) {
+                        this.timePicker.valueAsNumber = new Date().getTime();
+                    }
+                    var inMin = this.timePicker.valueAsNumber / 60000;
+                    this.time = parseInt("" + inMin / 60);
+                    this.minute = inMin % 60;
+                    KASClient.UI.setText(timeTextLabel, this.getTimeString(this.time, this.minute));
+                    if (this.timeChangeCallback) {
+                        this.timeChangeCallback(this.timePicker.valueAsNumber - new Date().getTime());
+                    }
+                }.bind(this);
+                timeTextLabel.onclick = function () {
+                    if (KASClient.getPlatform() == KASClient.Platform.Android) {
+                        this.timePicker.click();
+                    }
+                    else {
+                        this.timePicker.focus();
+                    }
+                }.bind(this);
+                var dueDateView = KASClient.UI.getHorizontalDiv([timeTextLabel, this.timePicker]);
+                KASClient.UI.addElement(dueDateView, inputView);
+                return inputView;
+            };
+            KASTimeInputView.prototype.getTimeString = function (hour, minute) {
+                var inMin = this.minTime / 60000;
+                var minHour = parseInt("" + inMin / 60);
+                var minMin = inMin % 60;
+                inMin = this.defaultTime / 60000;
+                var defaultHour = parseInt("" + inMin / 60);
+                var defaultMin = inMin % 60;
+                if (hour < minHour || (hour === minHour && minute < minMin)) {
+                    hour = defaultHour;
+                    minute = defaultMin;
+                }
+                var min = (minute < 10 ? "0" : "") + minute;
+                if (this.use24HourFormat) {
+                    return hour + ":" + min;
+                }
+                else {
+                    var hr = hour % 12;
+                    hr = (hr == 0 ? 12 : hr);
+                    return hr + ":" + min + " " + (parseInt("" + hour / 12) ? "pm" : "am");
+                }
+            };
+            KASTimeInputView.prototype.getTime = function () {
+                var selectedTime = this.defaultTime;
+                if (!isNaN(this.timePicker.valueAsNumber) && this.timePicker.valueAsNumber > this.minTime) {
+                    selectedTime = this.timePicker.valueAsNumber;
+                }
+                return selectedTime;
+            };
+            return KASTimeInputView;
+        }(UI.KASInputView));
+        UI.KASTimeInputView = KASTimeInputView;
+    })(UI = KASClient.UI || (KASClient.UI = {}));
+})(KASClient || (KASClient = {}));
+var KASClient;
+(function (KASClient) {
+    var UI;
+    (function (UI) {
+        var KASAlbumView = /** @class */ (function (_super) {
             __extends(KASAlbumView, _super);
             function KASAlbumView() {
                 var _this = _super.call(this) || this;
@@ -10917,11 +13173,11 @@ var KASClient;
                 var slide = KASClient.UI.getElement("div", { "display": "block", "width": "100%", "overflow": "hidden" });
                 var image = KASClient.UI.getElement("img", { "width": "100%", "height": "100%", "object-fit": "cover" });
                 image.src = src;
-                if (this.onImageTappedCallback && !this.showingThumbnail) {
+                if (this.tapEnabled && this.onImageTappedCallback && !this.showingThumbnail) {
                     KASClient.UI.setAccessibilityBasic(image, false, UI.KASFormAccessibilityRole.Image, KASClient.Internal.getKASClientString("TapToOpenText"));
                 }
                 else {
-                    KASClient.UI.setAccessibilityBasic(image, false, UI.KASFormAccessibilityRole.Image, "");
+                    KASClient.UI.setAccessibilityBasic(image, false, UI.KASFormAccessibilityRole.Image, " ");
                 }
                 KASClient.UI.addElement(image, slide);
                 return slide;
@@ -11011,7 +13267,7 @@ var KASClient;
 (function (KASClient) {
     var UI;
     (function (UI) {
-        var KASAlbumViewHandler = (function () {
+        var KASAlbumViewHandler = /** @class */ (function () {
             function KASAlbumViewHandler(albumViewModel) {
                 this.model = albumViewModel;
                 this.view = new UI.KASAlbumView();
@@ -11189,11 +13445,31 @@ var KASClient;
         UI.KASAlbumViewHandler = KASAlbumViewHandler;
     })(UI = KASClient.UI || (KASClient.UI = {}));
 })(KASClient || (KASClient = {}));
+/// <reference path="../KASAttachmentViewModel.ts" />
 var KASClient;
 (function (KASClient) {
     var UI;
     (function (UI) {
-        var KASAudioView = (function (_super) {
+        var KASAlbumViewModel = /** @class */ (function (_super) {
+            __extends(KASAlbumViewModel, _super);
+            function KASAlbumViewModel() {
+                var _this = _super.call(this) || this;
+                _this.imageLocalPaths = [];
+                _this.imageObjects = [];
+                _this.thumbnailBase64 = "";
+                _this.shouldBlurThumbnail = false;
+                return _this;
+            }
+            return KASAlbumViewModel;
+        }(UI.KASAttachmentViewModel));
+        UI.KASAlbumViewModel = KASAlbumViewModel;
+    })(UI = KASClient.UI || (KASClient.UI = {}));
+})(KASClient || (KASClient = {}));
+var KASClient;
+(function (KASClient) {
+    var UI;
+    (function (UI) {
+        var KASAudioView = /** @class */ (function (_super) {
             __extends(KASAudioView, _super);
             function KASAudioView(audio) {
                 var _this = _super.call(this) || this;
@@ -11291,7 +13567,7 @@ var KASClient;
 (function (KASClient) {
     var UI;
     (function (UI) {
-        var KASAudioViewHandler = (function () {
+        var KASAudioViewHandler = /** @class */ (function () {
             function KASAudioViewHandler(audioViewModel) {
                 this.model = audioViewModel;
                 this.view = new UI.KASAudioView(this.model.audioObj);
@@ -11419,679 +13695,23 @@ var KASClient;
 (function (KASClient) {
     var UI;
     (function (UI) {
-        var KASCheckboxView = (function () {
-            function KASCheckboxView(title, isChecked, checkedChangedCallback) {
-                this.title = "";
-                this.checkedChangedCallback = null;
-                this.checkboxInput = null;
-                this.checkboxDefaultValue = false;
-                this.view = null;
-                //Accessibility
-                this.accessibilityAttributes = {};
-                this.title = title;
-                this.checkedChangedCallback = checkedChangedCallback;
-                this.checkboxDefaultValue = isChecked;
-            }
-            KASCheckboxView.prototype.getView = function () {
-                var settingView = KASClient.UI.getElement("div", { "height": "48px", "margin": "0", "display": "flex", "flex-direction": "row", "align-items": "center" });
-                settingView.onclick = function () {
-                    this.checkboxInput.click();
-                    KASClient.UI.setAccessibilityAttribute(settingView, KASClient.UI.KASFormAccessibilityKey.Checked, this.isChecked());
-                }.bind(this, settingView);
-                KASClient.UI.setAccessibilityBasic(settingView, false, KASClient.UI.KASFormAccessibilityRole.Checkbox);
-                KASClient.UI.setAccessibilityAttribute(settingView, KASClient.UI.KASFormAccessibilityKey.Checked, "" + this.checkboxDefaultValue);
-                var titleLabelAttributes = {
-                    "flex": "1",
-                    "color": "#32485f",
-                    "font-size": KASClient.UI.getScaledFontSize("14px")
-                };
-                var titleLabel = KASClient.UI.getElement("label", titleLabelAttributes);
-                titleLabel.innerText = this.title;
-                KASClient.UI.addElement(titleLabel, settingView);
-                // Checkbox view
-                this.checkboxInput = KASClient.UI.getElement("input");
-                this.checkboxInput.type = "checkbox";
-                this.checkboxInput.checked = this.checkboxDefaultValue;
-                this.checkboxInput.onclick = function (event) {
-                    event.stopPropagation();
-                };
-                this.checkboxInput.onchange = function (event) {
-                    this.checkedChangedCallback(this.isChecked());
-                }.bind(this);
-                KASClient.UI.addElement(this.checkboxInput, settingView);
-                for (var key in this.accessibilityAttributes) {
-                    UI.setAccessibilityAttribute(settingView, key, this.accessibilityAttributes[key]);
-                }
-                this.view = settingView;
-                return settingView;
-            };
-            KASCheckboxView.prototype.isChecked = function () {
-                return this.checkboxInput.checked;
-            };
-            KASCheckboxView.prototype.setAccessibilityAttribute = function (key, value) {
-                if (this.view != null) {
-                    UI.setAccessibilityAttribute(this.view, key, value);
-                }
-                this.accessibilityAttributes[key] = value;
-            };
-            return KASCheckboxView;
-        }());
-        UI.KASCheckboxView = KASCheckboxView;
-    })(UI = KASClient.UI || (KASClient.UI = {}));
-})(KASClient || (KASClient = {}));
-var KASClient;
-(function (KASClient) {
-    var UI;
-    (function (UI) {
-        var KASInputView = (function () {
-            function KASInputView(header) {
-                this.header = null;
-                this.header = header;
-            }
-            KASInputView.prototype.getView = function () {
-                var headerDiv = UI.getLabel(this.header, Object.assign({
-                    "font-size": KASClient.UI.getScaledFontSize("12px"),
-                    "font-weight": "600",
-                    "color": "#32485f",
-                }, KASClient.UI.getMediumFontAttributes()));
-                UI.setAccessibilityBasic(headerDiv, false /*isHidden*/);
-                return UI.getVerticalDiv([headerDiv, UI.getSpace("12px"), this.getInputView()], {
-                    "position": "relative",
-                    "top": "0",
-                    "left": "0",
-                    "padding": "8px 16px"
-                });
-            };
-            return KASInputView;
-        }());
-        UI.KASInputView = KASInputView;
-    })(UI = KASClient.UI || (KASClient.UI = {}));
-})(KASClient || (KASClient = {}));
-/// <reference path="./KASInputView.ts" />
-var KASClient;
-(function (KASClient) {
-    var UI;
-    (function (UI) {
-        var KASDateInputView = (function (_super) {
-            __extends(KASDateInputView, _super);
-            /**
-             *
-             * @param header Header text of input view
-             * @param date Default date, In case of null place will be shown.
-             * @param placeHolder Placeholder text, In case of null current date will be shown
-             */
-            function KASDateInputView(header, date, placeHolder, dateChangeCallback) {
-                if (date === void 0) { date = null; }
-                if (placeHolder === void 0) { placeHolder = null; }
-                if (dateChangeCallback === void 0) { dateChangeCallback = null; }
-                var _this = _super.call(this, header) || this;
-                _this.date = null;
-                _this.placeHolder = null;
-                _this.showYear = false;
-                _this.allowPastDate = false;
-                _this.date = date;
-                _this.placeHolder = placeHolder;
-                _this.dateChangeCallback = dateChangeCallback;
+        var KASAudioViewModel = /** @class */ (function (_super) {
+            __extends(KASAudioViewModel, _super);
+            function KASAudioViewModel() {
+                var _this = _super.call(this) || this;
+                _this.audioObj = null;
                 return _this;
             }
-            KASDateInputView.prototype.getInputView = function () {
-                var inputView = KASClient.UI.getElement("div", {
-                    "padding-bottom": "8px",
-                    "border-bottom": "0.5px solid #6f7e8f",
-                    "display": "flex",
-                    "flex-direction": "column"
-                });
-                var dateText;
-                if (this.date != null) {
-                    dateText = KASClient.getDateString(this.date, true, false, this.showYear);
-                }
-                else if (this.placeHolder != null) {
-                    dateText = this.placeHolder;
-                }
-                else {
-                    var date = new Date();
-                    date.setUTCHours(0, 0, 0, 0);
-                    dateText = KASClient.getDateString(date, true, false, this.showYear);
-                }
-                var dateTextLabel = KASClient.UI.getLabel(dateText, {
-                    "flex": "1",
-                    "font-size": KASClient.UI.getScaledFontSize("16px"),
-                    "color": "#006ff1",
-                });
-                KASClient.UI.setAccessibilityBasic(dateTextLabel, false, KASClient.UI.KASFormAccessibilityRole.Text);
-                this.datePicker = KASClient.UI.getElement("input", {
-                    "-webkit-appearance": "none",
-                    "border": "none",
-                    "background": "transparent",
-                    "color": "transparent",
-                    "width": "1px",
-                    "height": "1px"
-                });
-                this.datePicker.type = "date";
-                KASClient.UI.setAccessibilityBasic(this.datePicker, true);
-                this.datePicker.onchange = function () {
-                    if (this.invalidDate()) {
-                        this.datePicker.valueAsNumber = new Date().getTime();
-                    }
-                    this.date = new Date(this.datePicker.valueAsNumber);
-                    KASClient.UI.setText(dateTextLabel, KASClient.getDateString(this.date, true, false, this.showYear));
-                    if (this.dateChangeCallback) {
-                        this.dateChangeCallback(this.datePicker.valueAsNumber);
-                    }
-                }.bind(this);
-                dateTextLabel.onclick = function () {
-                    if (KASClient.getPlatform() == KASClient.Platform.Android) {
-                        this.datePicker.click();
-                    }
-                    else {
-                        this.datePicker.focus();
-                    }
-                }.bind(this);
-                var dueDateView = KASClient.UI.getHorizontalDiv([dateTextLabel, this.datePicker]);
-                KASClient.UI.addElement(dueDateView, inputView);
-                return inputView;
-            };
-            KASDateInputView.prototype.invalidDate = function () {
-                return (this.datePicker.value == null || this.datePicker.value == "" ||
-                    (!this.allowPastDate && this.datePicker.valueAsNumber < this.getCurrentDateWithoutTime()));
-            };
-            KASDateInputView.prototype.getDate = function () {
-                if (this.invalidDate()) {
-                    return this.getCurrentDateWithoutTime();
-                }
-                return this.datePicker.valueAsNumber;
-            };
-            KASDateInputView.prototype.getCurrentDateWithoutTime = function () {
-                var date = new Date();
-                date.setUTCHours(0, 0, 0, 0);
-                return date.getTime();
-            };
-            return KASDateInputView;
-        }(UI.KASInputView));
-        UI.KASDateInputView = KASDateInputView;
+            return KASAudioViewModel;
+        }(UI.KASAttachmentViewModel));
+        UI.KASAudioViewModel = KASAudioViewModel;
     })(UI = KASClient.UI || (KASClient.UI = {}));
 })(KASClient || (KASClient = {}));
 var KASClient;
 (function (KASClient) {
     var UI;
     (function (UI) {
-        var KASImageGridAlbumView = (function (_super) {
-            __extends(KASImageGridAlbumView, _super);
-            function KASImageGridAlbumView(header, imageAttachments, previewMode, props, pickAttachmentsCallback) {
-                var _this = _super.call(this, header) || this;
-                _this.imageAttachments = [];
-                _this.previewMode = false;
-                _this.maxImageCount = -1;
-                _this.imagePickerSource = KASClient.ImagePickerSource.All;
-                _this.props = JSON.parse("{}");
-                _this.attachmentsAdded = 0;
-                if (imageAttachments != null) {
-                    _this.imageAttachments = imageAttachments;
-                }
-                _this.previewMode = previewMode;
-                _this.props = props;
-                _this.pickAttachmentsCallback = pickAttachmentsCallback;
-                _this.gridContainer = UI.getElement("div", _this.getGridContainerStyleAttributes());
-                return _this;
-            }
-            KASImageGridAlbumView.prototype.getInputView = function () {
-                UI.clearElement(this.gridContainer);
-                this.populateGrid();
-                return this.gridContainer;
-            };
-            KASImageGridAlbumView.prototype.populateGrid = function () {
-                UI.addCSS(this.gridContainer, this.getGridContainerStyleAttributes());
-                var cellCount = this.imageAttachments.length + (this.shouldShowAddImageButton() ? 1 : 0);
-                for (var attachmentIndex = 0; attachmentIndex < cellCount; attachmentIndex++) {
-                    var cellView = UI.getElement("div");
-                    if (attachmentIndex < this.imageAttachments.length) {
-                        var imageAttachment = this.imageAttachments[attachmentIndex];
-                        var image = this.getImageViewForGrid(attachmentIndex, imageAttachment);
-                        UI.addElement(image, cellView);
-                        this.attachmentsAdded++;
-                    }
-                    else if (attachmentIndex == this.imageAttachments.length && this.shouldShowAddImageButton()) {
-                        UI.addElement(this.getAddImageButtonView((this.imagePickerSource == KASClient.ImagePickerSource.CameraBack) || (this.imagePickerSource == KASClient.ImagePickerSource.CameraFront)), cellView);
-                    }
-                    UI.addElement(cellView, this.gridContainer);
-                }
-            };
-            KASImageGridAlbumView.prototype.setMaxImageCount = function (maxImageCount) {
-                this.maxImageCount = maxImageCount;
-            };
-            KASImageGridAlbumView.prototype.setImagePickerSource = function (imagePickerSource) {
-                this.imagePickerSource = imagePickerSource;
-            };
-            KASImageGridAlbumView.prototype.getSelectedAttachments = function () {
-                return this.imageAttachments;
-            };
-            KASImageGridAlbumView.prototype.shouldShowAddImageButton = function () {
-                if (this.previewMode) {
-                    return false;
-                }
-                else {
-                    if (this.imageAttachments.length == this.maxImageCount) {
-                        return false;
-                    }
-                    else if (this.imageAttachments.length < this.maxImageCount) {
-                        return true;
-                    }
-                    else {
-                        //possible?
-                    }
-                }
-            };
-            KASImageGridAlbumView.prototype.getAddImageButtonView = function (cameraOnly) {
-                if (cameraOnly === void 0) { cameraOnly = false; }
-                var addImageButtonContainer = UI.getElement("div", { "position": "relative" });
-                var addImageButton;
-                if (this.imageAttachments.length > 0) {
-                    addImageButton = UI.getBase64Image(UI.Assets.addImageGridAlbum, this.getAddImageButtonStyleAttributes());
-                    UI.addCSS(addImageButtonContainer, { "width": "84px", "height": "84px" });
-                    KASClient.UI.setAccessibilityBasic(addImageButtonContainer, false, KASClient.UI.KASFormAccessibilityRole.Button, KASClient.Internal.getKASClientString("AddMoreImages"));
-                }
-                else {
-                    if (cameraOnly) {
-                        addImageButton = UI.getBase64Image(UI.Assets.addCameraImageEmptyGridAlbum, { "width": "84px", "height": "77px" });
-                        KASClient.UI.setAccessibilityBasic(addImageButtonContainer, false, KASClient.UI.KASFormAccessibilityRole.Button, KASClient.Internal.getKASClientString("CameraPicker"));
-                    }
-                    else {
-                        addImageButton = UI.getBase64Image(UI.Assets.addImageEmptyGridAlbum, { "width": "84px", "height": "77px" });
-                        KASClient.UI.setAccessibilityBasic(addImageButtonContainer, false, KASClient.UI.KASFormAccessibilityRole.Button, KASClient.Internal.getKASClientString("ImagePicker"));
-                    }
-                    UI.addCSS(addImageButtonContainer, { "width": "84px", "height": "77px" });
-                }
-                var self = this;
-                UI.addClickEvent(addImageButton, function () {
-                    self.props[KASClient.KASAttachmentListQuestionConfig.MAX_IMAGE_COUNT_KEY] = self.maxImageCount - self.imageAttachments.length;
-                    KASClient.App.showAttachmentPickerAsync([KASClient.KASAttachmentType.Image], self.props, function (selectedAttachments, error) {
-                        if (error != null) {
-                            return;
-                        }
-                        self.imageAttachments = self.imageAttachments.concat(selectedAttachments);
-                        self.imagePickerSource = self.props[KASClient.KASAttachmentListQuestionConfig.IMAGE_SOURCE_KEY];
-                        self.getInputView();
-                        self.pickAttachmentsCallback(self.imageAttachments);
-                    });
-                });
-                UI.addElement(addImageButton, addImageButtonContainer);
-                return addImageButtonContainer;
-            };
-            KASImageGridAlbumView.prototype.getImageViewForGrid = function (attachmentIndex, imageAttachment) {
-                var path = imageAttachment.localPath;
-                if (KASClient.isEmptyString(path)) {
-                    path = imageAttachment.thumbnailServerUrl;
-                }
-                if (KASClient.isEmptyString(path)) {
-                    path = imageAttachment.serverPath;
-                }
-                var image = UI.getImage(path, this.previewMode ? this.getPreviewImageStyleAttributes() : this.getImageStyleAttributes());
-                image.onclick = function (index, e) {
-                    var urlList = [];
-                    for (var i = 0; i < this.imageAttachments.length; i++) {
-                        var path = this.imageAttachments[i].localPath;
-                        if (KASClient.isEmptyString(path)) {
-                            path = this.imageAttachments[i].serverPath;
-                        }
-                        urlList.push(path);
-                    }
-                    KASClient.App.showImageImmersiveView(urlList, index);
-                }.bind(this, attachmentIndex);
-                if (!this.previewMode) {
-                    var removeImageIcon = UI.getBase64Image(UI.Assets.removeImageGridAlbum, { "height": "14px", "width": "14px", "position": "absolute", "left": "70px", "top": "5px" });
-                    removeImageIcon.onclick = function (attachmentIndex, e) {
-                        this.imageAttachments.splice(attachmentIndex, 1);
-                        this.getInputView();
-                        this.pickAttachmentsCallback(this.imageAttachments);
-                    }.bind(this, attachmentIndex);
-                    KASClient.UI.setAccessibilityBasic(removeImageIcon, false, KASClient.UI.KASFormAccessibilityRole.Button, KASClient.Internal.getKASClientString("RemoveImage") + (attachmentIndex + 1));
-                    UI.addCSS(image, { "position": "absolute", "left": "0px", "top": "7px" });
-                    var imageContainer = UI.getElement("div", { "height": "84px", "width": "84px", "position": "relative" });
-                    UI.addElement(image, imageContainer);
-                    KASClient.UI.setAccessibilityBasic(image, false, KASClient.UI.KASFormAccessibilityRole.Image, KASClient.Internal.getKASClientString("Image") + (attachmentIndex + 1));
-                    UI.addElement(removeImageIcon, imageContainer);
-                    return imageContainer;
-                }
-                else {
-                    KASClient.UI.setAccessibilityBasic(image, false, KASClient.UI.KASFormAccessibilityRole.Image, KASClient.Internal.getKASClientString("Image") + (attachmentIndex + 1));
-                    return image;
-                }
-            };
-            KASImageGridAlbumView.prototype.getGridContainerStyleAttributes = function () {
-                if (this.previewMode) {
-                    return {
-                        "grid-template-columns": "repeat(auto-fit, 77px)",
-                        "display": "grid",
-                        "grid-gap": "0px",
-                        "grid-auto-rows": "77px"
-                    };
-                }
-                else {
-                    if (this.imageAttachments.length == 0) {
-                        return {
-                            "grid-template-columns": "repeat(auto-fit, 84px)",
-                            "display": "grid",
-                            "grid-gap": "0px",
-                            "grid-auto-rows": "77px"
-                        };
-                    }
-                    else {
-                        return {
-                            "grid-template-columns": "repeat(auto-fit, 84px)",
-                            "display": "grid",
-                            "grid-gap": "0px",
-                            "grid-auto-rows": "84px"
-                        };
-                    }
-                }
-            };
-            KASImageGridAlbumView.prototype.getPreviewImageStyleAttributes = function () {
-                return {
-                    "width": "72px",
-                    "height": "72px",
-                    "object-fit": "cover",
-                    "border-radius": "8px",
-                    "margin-left": "5px",
-                    "margin-top": "5px"
-                };
-            };
-            KASImageGridAlbumView.prototype.getImageStyleAttributes = function () {
-                return {
-                    "width": "68px",
-                    "height": "68px",
-                    "object-fit": "cover",
-                    "border-radius": "8px",
-                    "border": "2px solid #e0e3e7",
-                    "margin-left": "5px",
-                    "margin-top": "5px"
-                };
-            };
-            KASImageGridAlbumView.prototype.getAddImageButtonStyleAttributes = function () {
-                return {
-                    "width": "72px",
-                    "height": "72px",
-                    "object-fit": "cover",
-                    "border-radius": "8px",
-                    "position": "absolute",
-                    "left": "5px",
-                    "top": "12px"
-                };
-            };
-            return KASImageGridAlbumView;
-        }(UI.KASInputView));
-        UI.KASImageGridAlbumView = KASImageGridAlbumView;
-    })(UI = KASClient.UI || (KASClient.UI = {}));
-})(KASClient || (KASClient = {}));
-/// <reference path="./KASInputView.ts" />
-var KASClient;
-(function (KASClient) {
-    var UI;
-    (function (UI) {
-        var KASPhoneNumberInputView = (function (_super) {
-            __extends(KASPhoneNumberInputView, _super);
-            function KASPhoneNumberInputView(header, countryPhoneCode, phoneNumber) {
-                var _this = _super.call(this, header) || this;
-                _this.countryPhoneCode = 0;
-                _this.phoneNumber = "";
-                _this.countryPhoneCodesList = [];
-                _this.countryPhoneCode = countryPhoneCode;
-                _this.phoneNumber = phoneNumber;
-                _this.countryPhoneCodesList = KASClient.KASCountryPhoneCode.getAllCountryPhoneCodes();
-                return _this;
-            }
-            KASPhoneNumberInputView.prototype.getSelectedCountryCode = function () {
-                return this.countryPhoneCode;
-            };
-            KASPhoneNumberInputView.prototype.getPhoneNumber = function () {
-                return this.phoneNumber;
-            };
-            KASPhoneNumberInputView.prototype.getInputView = function () {
-                var phoneNumberInputViewContainerAttrs = {
-                    "display": "flex",
-                };
-                var phoneNumberInputViewContainer = KASClient.UI.getElement("div", phoneNumberInputViewContainerAttrs);
-                var countryPhoneCodeContainerAttrs = {
-                    "width": "80px",
-                    "border-bottom": "1px solid #e0e3e7",
-                    "display": "flex",
-                    "justify-content": "space-around"
-                };
-                var countryPhoneCodeContainer = KASClient.UI.getElement("div", countryPhoneCodeContainerAttrs);
-                var countryCodeInputAttrs = {
-                    "color": "#32495f",
-                    "font-size": KASClient.UI.getScaledFontSize("16px")
-                };
-                var countryPhoneCodeInput = KASClient.UI.getLabel("", countryCodeInputAttrs);
-                countryPhoneCodeInput.id = "countryPhoneCodeInputDiv";
-                if (this.countryPhoneCode > 0) {
-                    countryPhoneCodeInput.innerHTML = KASClient.KASCountryPhoneCode.getFormattedCountryPhoneCodeForCountry(this.countryPhoneCode, false);
-                }
-                else {
-                    countryPhoneCodeInput.innerText = "+91";
-                    this.countryPhoneCode = 91;
-                }
-                countryPhoneCodeContainer.onclick = function () {
-                    var countryPhoneCodeSelectionPopup = KASClient.UI.getAlertDialogWithDiv(this.getCountryCodeDropdown(), true, null);
-                    countryPhoneCodeSelectionPopup.id = "countryPhoneCodeSelectionPopup";
-                    countryPhoneCodeSelectionPopup.style.display = "block";
-                    this.setBasePageAccessibilityHidden(true);
-                    KASClient.UI.addElement(countryPhoneCodeSelectionPopup, document.body);
-                    KASClient.Internal.screenChanged("");
-                    countryPhoneCodeSelectionPopup.onclick = function () {
-                        var viewTapped = (event.target);
-                        var dropDownView = this.countryCodeDropDown.getView();
-                        if (!dropDownView.contains(viewTapped)) {
-                            countryPhoneCodeSelectionPopup.remove();
-                            this.setBasePageAccessibilityHidden(false);
-                            KASClient.Internal.screenChanged("");
-                        }
-                    }.bind(this);
-                }.bind(this);
-                KASClient.UI.addElement(countryPhoneCodeInput, countryPhoneCodeContainer);
-                var dropDownOpenButton = KASClient.UI.getBase64Image(KASClient.UI.Assets.dropDownExpand, { "width": "10px", "object-fit": "contain" });
-                UI.setAccessibilityBasic(dropDownOpenButton, true);
-                UI.setAccessibilityBasic(countryPhoneCodeContainer, false, UI.KASFormAccessibilityRole.Text, KASClient.Internal.getKASClientString("CountryCodeAccessibilityLabel", "+" + this.countryPhoneCode));
-                KASClient.UI.addElement(dropDownOpenButton, countryPhoneCodeContainer);
-                KASClient.UI.addElement(countryPhoneCodeContainer, phoneNumberInputViewContainer);
-                var phoneNumberInputAttrs = {
-                    "margin-left": "10px",
-                    "-webkit-appearance": "none",
-                    "border-radius": "0px",
-                    "border": "none",
-                    "border-bottom": "solid 1px #006ff1",
-                    "margin-bottom": "0px",
-                    "margin-top": "0px",
-                    "width": "100%",
-                    "color": "#32495f",
-                    "font-size": KASClient.UI.getScaledFontSize("18px"),
-                    "padding": "0px"
-                };
-                var phoneNumberInput = document.createElement("input");
-                KASClient.UI.addCSS(phoneNumberInput, phoneNumberInputAttrs);
-                phoneNumberInput.type = "tel";
-                phoneNumberInput.maxLength = 32;
-                if (!KASClient.isEmptyString(this.phoneNumber)) {
-                    phoneNumberInput.value = this.phoneNumber;
-                }
-                phoneNumberInput.oninput = function () {
-                    if (!KASClient.isEmptyString(phoneNumberInput.value)) {
-                        this.phoneNumber = phoneNumberInput.value;
-                    }
-                    else {
-                        this.phoneNumber = "";
-                    }
-                    if (this.onChangeCallback) {
-                        this.onChangeCallback(new KASClient.KASPhoneNumber(this.countryPhoneCode, this.phoneNumber));
-                    }
-                }.bind(this);
-                UI.setAccessibilityBasic(phoneNumberInput, false, UI.KASFormAccessibilityRole.None, KASClient.Internal.getKASClientString("PhoneNumberAccessibilityLabel"));
-                KASClient.UI.addElement(phoneNumberInput, phoneNumberInputViewContainer);
-                return phoneNumberInputViewContainer;
-            };
-            KASPhoneNumberInputView.prototype.setBasePageAccessibilityHidden = function (hidden) {
-                for (var i = 0; i < document.body.childElementCount; i++) {
-                    UI.setAccessibilityBasic(document.body.children.item(i), hidden);
-                }
-            };
-            KASPhoneNumberInputView.prototype.countryPhoneCodeSelected = function (index, optionText, isUnSelect) {
-                this.countryPhoneCode = this.countryPhoneCodesList[index];
-                var countryPhoneCodeInputDiv = document.getElementById("countryPhoneCodeInputDiv");
-                countryPhoneCodeInputDiv.innerText = KASClient.KASCountryPhoneCode.getFormattedCountryPhoneCodeForCountry(this.countryPhoneCode, false);
-                UI.setAccessibilityBasic(countryPhoneCodeInputDiv.parentElement, false, UI.KASFormAccessibilityRole.Text, KASClient.Internal.getKASClientString("CountryCodeAccessibilityLabel", "+" + this.countryPhoneCode));
-                var countryPhoneCodeSelectionPopup = document.getElementById("countryPhoneCodeSelectionPopup");
-                countryPhoneCodeSelectionPopup.remove();
-                this.setBasePageAccessibilityHidden(false);
-                KASClient.Internal.screenChanged("");
-                if (this.onChangeCallback) {
-                    this.onChangeCallback(new KASClient.KASPhoneNumber(this.countryPhoneCode, this.phoneNumber));
-                }
-            };
-            KASPhoneNumberInputView.prototype.getCountryCodeDropdown = function () {
-                var headerView = UI.getLabel(KASClient.Internal.getKASClientString("CountryCodeDropdownTitle"), {
-                    "padding-bottom": "9px",
-                    "padding-left": "12px",
-                    "padding-top": "8px",
-                    "font-size": "12px",
-                    "color": "#727d88",
-                    "height": "14px"
-                });
-                this.countryCodeDropDown = new KASClient.UI.KASFormDropDown(new KASClient.KASDropDownModel(KASClient.KASCountryPhoneCode.getAllFormattedCountryPhoneCodes(), [], false, false), headerView);
-                this.countryCodeDropDown.rowSelectCallBack = function (index, optionText, isUnSelect) {
-                    this.countryPhoneCodeSelected(index, optionText, isUnSelect);
-                }.bind(this);
-                return this.countryCodeDropDown.getView();
-            };
-            return KASPhoneNumberInputView;
-        }(UI.KASInputView));
-        UI.KASPhoneNumberInputView = KASPhoneNumberInputView;
-    })(UI = KASClient.UI || (KASClient.UI = {}));
-})(KASClient || (KASClient = {}));
-/// <reference path="./KASInputView.ts" />
-var KASClient;
-(function (KASClient) {
-    var UI;
-    (function (UI) {
-        var KASTimeInputView = (function (_super) {
-            __extends(KASTimeInputView, _super);
-            /**
-             *
-             * @param header Header text of input view
-             * @param Default Time in minutes, In case of null place will be shown
-             * @param placeHolder Placeholder text, In case of null current time will be shown
-             */
-            function KASTimeInputView(header, time, placeHolder, timeChangeCallback, minTime, defaultTime) {
-                if (placeHolder === void 0) { placeHolder = null; }
-                if (timeChangeCallback === void 0) { timeChangeCallback = null; }
-                var _this = _super.call(this, header) || this;
-                _this.hour = null;
-                _this.minute = null;
-                _this.placeHolder = null;
-                _this.use24HourFormat = false;
-                time = time % 1440;
-                _this.hour = parseInt("" + time / 24);
-                _this.minute = time % 60;
-                _this.placeHolder = placeHolder;
-                _this.timeChangeCallback = timeChangeCallback;
-                _this.minTime = minTime;
-                _this.defaultTime = defaultTime;
-                return _this;
-            }
-            KASTimeInputView.prototype.getInputView = function () {
-                var inputView = KASClient.UI.getElement("div", {
-                    "padding-bottom": "8px",
-                    "border-bottom": "0.5px solid #6f7e8f",
-                    "display": "flex",
-                    "flex-direction": "column"
-                });
-                var timeText;
-                if (this.hour != null && this.minute != null) {
-                    timeText = this.getTimeString(this.hour, this.minute);
-                }
-                else if (this.placeHolder != null) {
-                    timeText = this.placeHolder;
-                }
-                else {
-                    var date = new Date();
-                    timeText = this.getTimeString(date.getHours(), date.getMinutes());
-                }
-                var timeTextLabel = KASClient.UI.getLabel(timeText, {
-                    "flex": "1",
-                    "font-size": KASClient.UI.getScaledFontSize("16px"),
-                    "color": "#006ff1",
-                });
-                KASClient.UI.setAccessibilityBasic(timeTextLabel, false, KASClient.UI.KASFormAccessibilityRole.Text);
-                this.timePicker = KASClient.UI.getElement("input", {
-                    "-webkit-appearance": "none",
-                    "border": "none",
-                    "background": "transparent",
-                    "color": "transparent",
-                    "width": "1px",
-                    "height": "1px"
-                });
-                this.timePicker.type = "time";
-                KASClient.UI.setAccessibilityBasic(this.timePicker, true);
-                this.timePicker.onchange = function () {
-                    if (isNaN(this.timePicker.valueAsNumber)) {
-                        this.timePicker.valueAsNumber = new Date().getTime();
-                    }
-                    var inMin = this.timePicker.valueAsNumber / 60000;
-                    this.time = parseInt("" + inMin / 60);
-                    this.minute = inMin % 60;
-                    KASClient.UI.setText(timeTextLabel, this.getTimeString(this.time, this.minute));
-                    if (this.timeChangeCallback) {
-                        this.timeChangeCallback(this.timePicker.valueAsNumber - new Date().getTime());
-                    }
-                }.bind(this);
-                timeTextLabel.onclick = function () {
-                    if (KASClient.getPlatform() == KASClient.Platform.Android) {
-                        this.timePicker.click();
-                    }
-                    else {
-                        this.timePicker.focus();
-                    }
-                }.bind(this);
-                var dueDateView = KASClient.UI.getHorizontalDiv([timeTextLabel, this.timePicker]);
-                KASClient.UI.addElement(dueDateView, inputView);
-                return inputView;
-            };
-            KASTimeInputView.prototype.getTimeString = function (hour, minute) {
-                var inMin = this.minTime / 60000;
-                var minHour = parseInt("" + inMin / 60);
-                var minMin = inMin % 60;
-                inMin = this.defaultTime / 60000;
-                var defaultHour = parseInt("" + inMin / 60);
-                var defaultMin = inMin % 60;
-                if (hour < minHour || (hour === minHour && minute < minMin)) {
-                    hour = defaultHour;
-                    minute = defaultMin;
-                }
-                var min = (minute < 10 ? "0" : "") + minute;
-                if (this.use24HourFormat) {
-                    return hour + ":" + min;
-                }
-                else {
-                    var hr = hour % 12;
-                    hr = (hr == 0 ? 12 : hr);
-                    return hr + ":" + min + " " + (parseInt("" + hour / 12) ? "pm" : "am");
-                }
-            };
-            KASTimeInputView.prototype.getTime = function () {
-                var selectedTime = this.defaultTime;
-                if (!isNaN(this.timePicker.valueAsNumber) && this.timePicker.valueAsNumber > this.minTime) {
-                    selectedTime = this.timePicker.valueAsNumber;
-                }
-                return selectedTime;
-            };
-            return KASTimeInputView;
-        }(UI.KASInputView));
-        UI.KASTimeInputView = KASTimeInputView;
-    })(UI = KASClient.UI || (KASClient.UI = {}));
-})(KASClient || (KASClient = {}));
-var KASClient;
-(function (KASClient) {
-    var UI;
-    (function (UI) {
-        var KASDocumentView = (function (_super) {
+        var KASDocumentView = /** @class */ (function (_super) {
             __extends(KASDocumentView, _super);
             function KASDocumentView(documentObj2) {
                 var _this = _super.call(this) || this;
@@ -12160,7 +13780,7 @@ var KASClient;
 (function (KASClient) {
     var UI;
     (function (UI) {
-        var KASDocumentViewHandler = (function () {
+        var KASDocumentViewHandler = /** @class */ (function () {
             function KASDocumentViewHandler(documentViewModel) {
                 this.model = documentViewModel;
                 this.view = new UI.KASDocumentView(this.model.documentObj);
@@ -12287,7 +13907,45 @@ var KASClient;
 (function (KASClient) {
     var UI;
     (function (UI) {
-        var KASDropDownOptionsInputView = (function () {
+        var KASDocumentViewModel = /** @class */ (function (_super) {
+            __extends(KASDocumentViewModel, _super);
+            function KASDocumentViewModel() {
+                var _this = _super.call(this) || this;
+                _this.documentObj = null;
+                return _this;
+            }
+            return KASDocumentViewModel;
+        }(UI.KASAttachmentViewModel));
+        UI.KASDocumentViewModel = KASDocumentViewModel;
+    })(UI = KASClient.UI || (KASClient.UI = {}));
+})(KASClient || (KASClient = {}));
+var KASClient;
+(function (KASClient) {
+    var UI;
+    (function (UI) {
+        var KASDropDownModel = /** @class */ (function () {
+            function KASDropDownModel(options, selectedOptionIndexes, isSearchEnabled, isMultiSelect) {
+                if (isSearchEnabled === void 0) { isSearchEnabled = false; }
+                if (isMultiSelect === void 0) { isMultiSelect = false; }
+                this.optionsAsStrings = [];
+                this.isSearchEnabled = false;
+                this.selectedOptionIndexes = [];
+                this.isMutliSelect = false;
+                this.optionsAsStrings = options;
+                this.isSearchEnabled = isSearchEnabled;
+                this.selectedOptionIndexes = selectedOptionIndexes;
+                this.isMutliSelect = isMultiSelect;
+            }
+            return KASDropDownModel;
+        }());
+        UI.KASDropDownModel = KASDropDownModel;
+    })(UI = KASClient.UI || (KASClient.UI = {}));
+})(KASClient || (KASClient = {}));
+var KASClient;
+(function (KASClient) {
+    var UI;
+    (function (UI) {
+        var KASDropDownOptionsInputView = /** @class */ (function () {
             function KASDropDownOptionsInputView(placeHolder, delimiter) {
                 if (delimiter === void 0) { delimiter = ","; }
                 this.optionsListLI = []; // li's
@@ -12295,6 +13953,9 @@ var KASClient;
                 this.placeHolderText = placeHolder;
                 this.optionsDelimiter = delimiter;
                 this.containerView = UI.getElement("div", { "height": "auto", "margin": "0", "width": "100%" });
+                this.containerView.onclick = function () {
+                    this.onContainerViewTapped();
+                }.bind(this);
             }
             KASDropDownOptionsInputView.prototype.getView = function () {
                 if (this.options != null && this.options != undefined) {
@@ -12310,40 +13971,47 @@ var KASClient;
             };
             KASDropDownOptionsInputView.prototype.showDefaultView = function () {
                 UI.removeElement(this.optionsListOL, this.containerView);
-                this.placeHolderLabel = UI.getLabel(this.placeHolderText, { "padding-top": "10px", "color": "#98a3af", "font-size": "15px" });
-                this.containerView.onclick = function () {
-                    this.populateEditView();
-                }.bind(this);
+                this.placeHolderLabel = UI.getLabel(this.placeHolderText, {
+                    "padding-top": "10px",
+                    "color": "#98a3af",
+                    "font-size": KASClient.UI.getScaledFontSize("15px")
+                });
                 UI.addElement(this.placeHolderLabel, this.containerView);
             };
+            KASDropDownOptionsInputView.prototype.onContainerViewTapped = function () {
+                if (!this.optionsListOL)
+                    this.populateEditView();
+                if (this.optionsListOL.getElementsByTagName("li").length == 0)
+                    this.showEmptyOptionsList();
+            };
             KASDropDownOptionsInputView.prototype.populateEditView = function () {
-                if (!this.optionsListOL) {
-                    UI.removeElement(this.placeHolderLabel, this.containerView);
-                    this.optionsListOL = UI.getElement('ol', { "-webkit-user-select": "text", "min-height": "150px" });
-                    this.optionsListOL.contentEditable = "true";
-                    UI.addElement(this.optionsListOL, this.containerView);
-                    this.showEmptyOptionsList();
-                }
-                else if (this.optionsListOL.childNodes.length == 0)
-                    this.showEmptyOptionsList();
+                UI.removeElement(this.placeHolderLabel, this.containerView);
+                this.optionsListOL = UI.getElement('ol', { "-webkit-user-select": "text", "min-height": "150px" });
+                this.optionsListOL.contentEditable = "true";
+                // Fix for Bug 2008611 - contenteditable=true is not editable in Oreo in talkbalk mode
+                UI.addClickEvent(this.optionsListOL, function () {
+                    this.focus();
+                });
+                UI.addElement(this.optionsListOL, this.containerView);
             };
             KASDropDownOptionsInputView.prototype.showEmptyOptionsList = function () {
-                this.showDefaultOption();
-                this.optionsListLI[0].focus();
+                this.optionsListLI = [];
+                this.appendOptionRowForText(" ");
+                setTimeout(function () {
+                    this.optionsListLI[0].focus();
+                }.bind(this), 100);
             };
             KASDropDownOptionsInputView.prototype.appendOptionRowForText = function (option) {
-                var li = UI.getElement('li', { "font-size": "16px", "color": "#32485f" });
+                var li = UI.getElement('li', { "font-size": KASClient.UI.getScaledFontSize("16px"), "color": "#32485f" });
+                li.tabIndex = this.optionsListLI.length + 1;
                 li.innerText = option;
                 this.optionsListLI.push(li);
                 UI.addElement(li, this.optionsListOL);
             };
-            KASDropDownOptionsInputView.prototype.showDefaultOption = function () {
-                this.appendOptionRowForText(" ");
-            };
             KASDropDownOptionsInputView.prototype.getOptions = function () {
                 var options = [];
                 if (this.optionsListOL) {
-                    var optionsLI = this.optionsListOL.childNodes;
+                    var optionsLI = this.optionsListOL.getElementsByTagName("li");
                     for (var i = 0; i < optionsLI.length; i++) {
                         var optionText = optionsLI[i].innerText.trim();
                         if (optionText) {
@@ -12365,7 +14033,7 @@ var KASClient;
 (function (KASClient) {
     var UI;
     (function (UI) {
-        var KASDropDownRow = (function () {
+        var KASDropDownRow = /** @class */ (function () {
             function KASDropDownRow(text, index, isSelected) {
                 if (isSelected === void 0) { isSelected = false; }
                 this.text = "";
@@ -12441,7 +14109,7 @@ var KASClient;
 (function (KASClient) {
     var UI;
     (function (UI) {
-        var KASFormDropDown = (function () {
+        var KASFormDropDown = /** @class */ (function () {
             function KASFormDropDown(dropDownModel, headerView, footerView) {
                 if (headerView === void 0) { headerView = null; }
                 if (footerView === void 0) { footerView = null; }
@@ -12564,7 +14232,7 @@ var KASClient;
 (function (KASClient) {
     var UI;
     (function (UI) {
-        var KASVideoView = (function (_super) {
+        var KASVideoView = /** @class */ (function (_super) {
             __extends(KASVideoView, _super);
             function KASVideoView() {
                 var _this = _super.call(this) || this;
@@ -12631,7 +14299,7 @@ var KASClient;
 (function (KASClient) {
     var UI;
     (function (UI) {
-        var KASVideoViewHandler = (function () {
+        var KASVideoViewHandler = /** @class */ (function () {
             function KASVideoViewHandler(videoViewModel) {
                 this.model = videoViewModel;
                 this.view = new UI.KASVideoView();
@@ -12747,6 +14415,27 @@ var KASClient;
         UI.KASVideoViewHandler = KASVideoViewHandler;
     })(UI = KASClient.UI || (KASClient.UI = {}));
 })(KASClient || (KASClient = {}));
+/// <reference path="../KASAttachmentViewModel.ts" />
+var KASClient;
+(function (KASClient) {
+    var UI;
+    (function (UI) {
+        var KASVideoViewModel = /** @class */ (function (_super) {
+            __extends(KASVideoViewModel, _super);
+            function KASVideoViewModel() {
+                var _this = _super.call(this) || this;
+                _this.videoLocalPath = "";
+                _this.videoStreamingPath = "";
+                _this.thumbnailBase64 = "";
+                _this.shouldBlurThumbnail = false;
+                return _this;
+            }
+            return KASVideoViewModel;
+        }(UI.KASAttachmentViewModel));
+        UI.KASVideoViewModel = KASVideoViewModel;
+    })(UI = KASClient.UI || (KASClient.UI = {}));
+})(KASClient || (KASClient = {}));
 // Below lines will be executed after loading of KASClient SDK.
+KASClient.Internal.setDocumentDomain();
 KASClient.Internal.setFontSizeMultiplier();
 KASClient.Internal.initialiseKASClientStrings();
