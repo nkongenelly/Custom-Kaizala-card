@@ -691,14 +691,20 @@
                         let formValue = "";
                         if(fieldType == 0){
                             formValue = selectedOptions[compressedTitle];
+                            
+                            if(formValue !== 0){
+                                if((formValue == "") || (formValue == null)){
+                                    nextButtonIsDisabled = true;
+                                }
+                            }
                         }
 
                         else{
                             formValue = document.getElementById(compressedTitle).value;
-                        }
                         
-                        if((formValue == "") || (formValue == null)){
-                            nextButtonIsDisabled = true;
+                            if((formValue == "") || (formValue == null)){
+                                nextButtonIsDisabled = true;
+                            }
                         }
                     }
                 }
