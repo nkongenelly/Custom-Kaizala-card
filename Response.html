@@ -473,8 +473,8 @@
             var locationMapView = KASClient.UI.getElement("img");
             if (_currentLocation.hasOwnProperty("lt") == true && _currentLocation.hasOwnProperty("lg") == true) {
                 locationMapView.src =
-                    "https://maps.googleapis.com/maps/api/staticmap?zoom=18&size=360x170&maptype=roadmap&markers=color:blue%7C%7C" +
-                    _currentLocation["lt"] + "," + _currentLocation["lg"];
+                "https://maps.googleapis.com/maps/api/staticmap?zoom=18&size=360x170&maptype=roadmap&markers=color:blue%7C%7C" +
+_currentLocation["lt"] + "," + _currentLocation["lg"] + "&key=AIzaSyAMfrWKiELcjgQDzNq1n3LTVMSQAXGSs6E";
             } else {
                 locationMapView.style.display = "none";
             }
@@ -886,7 +886,7 @@
                 });
                 locationMap.src =
                     "https://maps.googleapis.com/maps/api/staticmap?zoom=18&size=360x170&maptype=roadmap&markers=color:blue%7C%7C" +
-                    _currentLocation["lt"] + "," + _currentLocation["lg"];
+_currentLocation["lt"] + "," + _currentLocation["lg"] + "&key=AIzaSyAMfrWKiELcjgQDzNq1n3LTVMSQAXGSs6E";
                 locationMap.onerror = function (e) {
                     KASClient.UI.removeElement(locationMap, location);
                 }
@@ -929,8 +929,8 @@
         function fetchAndPopulateAddress() {
             if (_currentLocation.hasOwnProperty("lt") == true && _currentLocation.hasOwnProperty("lg") == true) {
                 var xhr = new XMLHttpRequest();
-                var url = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + _currentLocation["lt"] + "," +
-                    _currentLocation["lg"];
+                var url = "https://maps.googleapis.com/maps/api/staticmap?zoom=18&size=360x170&maptype=roadmap&markers=color:blue%7C%7C" +
+_currentLocation["lt"] + "," + _currentLocation["lg"] + "&key=AIzaSyAMfrWKiELcjgQDzNq1n3LTVMSQAXGSs6E";
                 xhr.open("GET", url, true);
                 xhr.responseType = "json";
                 xhr.timeout = LOCATION_TIMEOUT;

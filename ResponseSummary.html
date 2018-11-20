@@ -342,7 +342,7 @@
                     });
                     locationMap.src =
                         "https://maps.googleapis.com/maps/api/staticmap?zoom=18&size=360x170&maptype=roadmap&markers=color:blue%7C%7C" +
-                        _currentLocation["lt"] + "," + _currentLocation["lg"];
+_currentLocation["lt"] + "," + _currentLocation["lg"] + "&key=AIzaSyAMfrWKiELcjgQDzNq1n3LTVMSQAXGSs6E";
                     locationMap.onerror = function (e) {
                         KASClient.UI.removeElement(locationMap, location);
                     }
